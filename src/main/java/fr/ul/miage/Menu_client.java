@@ -19,13 +19,25 @@ public class Menu_client {
             String pseudo = sc.next();
             System.out.println("Saisir un mot de passe");
             String mdp = sc.next();
+            String protect_mdp = cl.encryptPassword(mdp);
+            System.out.println("Saisir votre nom");
+            String nom = sc.next();
+            System.out.println("Saisir votre prenom");
+            String prenom = sc.next();
+            System.out.println("Saisir votre numéro de téléphone");
+            String num_tel = sc.next();
+            System.out.println("Saisir votre numéro de carte bancaire");
+            String num_carte = sc.next();
             System.out.println("Saisir un mail");
             String mail = sc.next();
-            System.out.println("Saisir un numéro de plaque");
+            System.out.println("Saisir un numéro de plaque (non obligatoire)");
             String plaque = sc.next();
+            if(plaque.isEmpty()){
+                plaque = "";
+            }
             //database.addNewClient(pseudo,mdp,mail,plaque);
            try{
-            cl.ajoutClient(pseudo, mdp, mail, plaque);
+            cl.ajoutClient(pseudo, protect_mdp,nom,prenom,num_tel,num_carte, mail, plaque);
 
            }catch(ClassNotFoundException e){
                e.printStackTrace();
