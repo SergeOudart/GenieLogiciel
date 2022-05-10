@@ -7,7 +7,7 @@ import com.mysql.cj.x.protobuf.MysqlxPrepare.Prepare;
 public class DatabaseConnection {
     
 
-    public Connection dbco(String uri, String user, String password) {
+    public static Connection dbco(String uri, String user, String password) {
         Connection con = null;
 
         try {
