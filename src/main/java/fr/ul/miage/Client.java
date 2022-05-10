@@ -6,13 +6,7 @@ import java.sql.*;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
-public class Client extends DatabaseConnection{
-
-
-    
-   
-
-    
+public class Client extends DatabaseConnection{    
 
     public Client(){
         super();

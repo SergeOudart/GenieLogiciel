@@ -94,7 +94,6 @@ public class Reservation extends DatabaseConnection{
         List<Reservation> lr = new ArrayList<Reservation>();
         Reservation r = null;
         
-
         try {
             PreparedStatement pstate = co.prepareStatement(queryReservation);
             pstate.setInt(1, idClient);

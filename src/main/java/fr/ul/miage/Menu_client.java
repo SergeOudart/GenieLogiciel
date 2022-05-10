@@ -18,6 +18,10 @@ public class Menu_client {
 
         int choice = sc.nextInt();
 
+        /**
+         * TODO vérification des identifiants
+         */
+
         switch (choice) {
             case 1:
             System.out.println("Saisir un pseudo");
@@ -42,18 +46,16 @@ public class Menu_client {
             }
             //database.addNewClient(pseudo,mdp,mail,plaque);
            try{
-            cl.ajoutClient(pseudo, protect_mdp,nom,prenom,num_tel,num_carte, mail, plaque);
-
+            if (verifEntry(pseudo, mdp, nom, prenom, num_tel, num_carte, mail, plaque)) {
+                cl.ajoutClient(pseudo, protect_mdp,nom,prenom,num_tel,num_carte, mail, plaque);
+                System.out.println("Votre compte a bien été créé");
+            } else 
+            {
+                System.out.println("Les identifiants passés ne respectent pas le bon format");
+            }
            }catch(ClassNotFoundException e){
                e.printStackTrace();
            }
-            
-
-            
-
-            System.out.println("Votre compte a bien été créé");
-
-
                 
                 break;
             
@@ -125,6 +127,20 @@ public class Menu_client {
         sc.close();
 
 
+    }
+
+    public boolean verifEntry(String pseudo, String mdp, String nom, String prenom, String num_tel, String num_carte, String mail, String plaque) 
+    {
+        boolean verif = true;
+
+        verif = nom.matches("[A-Za-z]+") 
+        && prenom.matches("[A-Za-z]+") 
+        && num_tel.matches("[0-9]+") 
+        && num_carte.matches("[0-9]+")
+        && mail.matches("^(.+)@(.+)$")
+        && plaque.matches("[0-9]*");
+
+        return verif;
     }
     
 }

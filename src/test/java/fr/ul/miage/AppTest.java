@@ -9,12 +9,12 @@ import org.junit.Test;
  */
 public class AppTest 
 {
-    /**
-     * Rigorous Test :-)
-     */
     @Test
-    public void shouldAnswerWithTrue()
+    public void testEntryNewUser() 
     {
-        assertTrue( true );
+        Menu_client menu = new Menu_client();
+        assertTrue(menu.verifEntry("pseudo", "mdp", "nom", "prenom", "0777", "0123", "mail@mail.fr", "0123"));
     }
+
+    
 }
