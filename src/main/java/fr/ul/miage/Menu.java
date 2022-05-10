@@ -12,9 +12,9 @@ public class Menu {
 
         switch(nb1) {
             case 1:
-            Menu_client mc = new Menu_client();
+            Client client = new Client();
 			
-			mc.launch();
+			client.menu_client();
 			break;
 
     }
