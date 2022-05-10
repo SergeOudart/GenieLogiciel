@@ -1,5 +1,7 @@
 package fr.ul.miage;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -115,7 +117,12 @@ public class Menu_client {
 
                 break;
                 case 7:
-                    System.out.println(Borne.bornesDispo());
+                    // System.out.println(Borne.bornesDispo());
+                    LocalDate date_deb = LocalDate.parse("2022-08-10");
+                    //Reservation r_test = Reservation.affecterReservation(1,date_deb,2);
+                    //System.out.println(r_test.toString());
+
+                    System.out.println(Reservation.affecterReservation(1,date_deb,2));
                 break;
             
                 //System.out.println("Le client a été supprimé");
