@@ -10,7 +10,7 @@ public class AppTest
     public void testEntryNewUser() 
     {
         Client client = new Client();
-        assertTrue(client.verifEntry("pseudo", "mdp", "nom", "prenom", "0777", "0123", "mail@mail.fr", "0123"));
+        assertTrue(client.verifEntry("pseudo", "mdp", "nom", "prenom", "0777", "0123", "mail@mail.fr", "0123", "user"));
     }
 
     

@@ -21,7 +21,7 @@ public class Borne {
 
         Dotenv dotenv = null;
         dotenv = Dotenv.configure().load();
-        Connection co = Client.dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
+        Connection co = DatabaseConnection.dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
         String queryBorne = "SELECT etat FROM Borne WHERE idBorne = (?)";
         
         try {
@@ -46,7 +46,7 @@ public class Borne {
         List<Integer> liste = new ArrayList<Integer>();
         Dotenv dotenv = null;
         dotenv = Dotenv.configure().load();
-        Connection co = Client.dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
+        Connection co = DatabaseConnection.dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
         String queryBorne = "SELECT idBorne FROM Borne WHERE etat = 'disponible' ";
 
         try {

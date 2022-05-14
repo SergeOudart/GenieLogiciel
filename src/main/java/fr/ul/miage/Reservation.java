@@ -5,9 +5,12 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -80,6 +83,11 @@ public class Reservation extends DatabaseConnection{
     public Reservation() {
     }
    
+    /**
+     * Changer idReservation enlever Auto increment et en générer aléatoirement 
+     * @param idClient
+     * @return
+     */
 
 
 
@@ -143,7 +151,7 @@ public class Reservation extends DatabaseConnection{
         }
         Dotenv dotenv = null;
         dotenv = Dotenv.configure().load();
-        Connection co = Client.dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
+        Connection co = DatabaseConnection.dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
         String queryReservation = "INSERT INTO Reservation (idClient,idBorne,date_deb,date_fin,duree) VALUES (?,?,?,?,?) ";
 
         try {
@@ -178,14 +186,58 @@ public class Reservation extends DatabaseConnection{
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
-
-
-
-
-
-
         return r;
+    }
+
+    public boolean checkProlongerReservation(int idReservation){ //Vérifier dans combien de minutes est l'expiration de réservation
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        Timestamp timestamp2;
+        long deb;
+        long fin = 0; 
+        long diff_timestamp;
+
+         //On récupère les variables d'environnement pour ouvrire la connexion
+         Dotenv dotenv = null;
+         dotenv = Dotenv.configure().load();
+         Connection co = DatabaseConnection.dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
+         String query = "SELECT * from reservation WHERE idReservation = (?)";
+
+         try {
+            PreparedStatement pstate = co.prepareStatement(query);
+            pstate.setInt(1, idReservation);
+            ResultSet rs = pstate.executeQuery();
+            if(rs.next()){
+                timestamp2 = rs.getTimestamp(5);
+                fin = timestamp2.getTime();
+
+            }
+            deb = timestamp.getTime();
+            
+            diff_timestamp = TimeUnit.MILLISECONDS.toMinutes(deb - fin);
+            if(diff_timestamp < 30){
+                return true;
+
+            }else{
+                System.out.println("Impossible de prolonger la réservation");
+                return false;
+            }
+            
+           
+             
+         } catch (Exception e) {
+             
+         }
+        return false;
+    }
+
+    public Reservation prolongerReservation(int idReservation){ //Prolonger une réservation
+        boolean checkReservation = checkProlongerReservation(idReservation);
+
+        if(checkReservation){
+
+        }
+       
+        return null;
 
     }
 
@@ -194,6 +246,12 @@ public class Reservation extends DatabaseConnection{
         return "Reservation [date_deb=" + date_deb + ", date_fin=" + date_fin + ", duree=" + duree + ", idBorne="
                 + idBorne + ", idClient=" + idClient + ", idReservation=" + idReservation + "]";
     }
-   
+
+    public LocalDate convertToLocalDateViaInstant(Date dateToConvert) {
+        return dateToConvert.toInstant()
+          .atZone(ZoneId.systemDefault())
+          .toLocalDate();
+    }
+
     
 }
