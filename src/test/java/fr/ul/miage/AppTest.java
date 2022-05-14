@@ -4,17 +4,14 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-/**
- * Unit test for simple App.
- */
 public class AppTest 
 {
-    /**
-     * Rigorous Test :-)
-     */
     @Test
-    public void shouldAnswerWithTrue()
+    public void testEntryNewUser() 
     {
-        assertTrue( true );
+        Client client = new Client();
+        assertTrue(client.verifEntry("pseudo", "mdp", "nom", "prenom", "0777", "0123", "mail@mail.fr", "0123"));
     }
+
+    
 }
