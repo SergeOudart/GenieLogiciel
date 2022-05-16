@@ -189,7 +189,7 @@ public class Client {
 
    
 
-    /*public String verifPlaque(String plaque){
+   /* public String verifPlaque(String plaque){
 
         String plaqueClient= getClientIdByPlaque(plaque);
         try {

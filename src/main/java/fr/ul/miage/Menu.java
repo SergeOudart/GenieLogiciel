@@ -45,7 +45,7 @@ public class Menu {
                         int num_res = sc.nextInt();
                         System.out.println("Veuillez entrer votre mot de passe : ");
                         
-                        password = sc.nextLine();
+                        password = sc.next();
                         result = connexionFromReservation(num_res, password);
                         if(result){
                             idClient = getClientIdByReservation(num_res);
@@ -58,7 +58,7 @@ public class Menu {
                         System.out.println("Veuillez entrer votre numéro de plaque :");
                         plaqueClient = sc.nextLine();
                         System.out.println("Veuillez entrer votre mot de passe : ");
-                        password = sc.nextLine();
+                        password = sc.next();
                         result = connexionFromPlaque(plaqueClient,password);
                         if(result){
                             idClient = getClientIdByPlaque(plaqueClient);
@@ -156,6 +156,7 @@ public class Menu {
 
     public boolean connexionFromReservation(int reservation, String password) {
         String query = "SELECT idClient FROM reservation where idReservation=(?)";
+        String query2 = "SELECT mdp FROM client where idCLient=(?)";
         String passwordCompare = "";
         int idClient = 0;
         try {
@@ -167,19 +168,26 @@ public class Menu {
                 idClient = rs.getInt("idClient");
             }
             System.out.println(idClient);
-
-            query = "SELECT mdp FROM client where idCLient=(?)";
-            pstate.setInt(1, idClient);
-            ResultSet rs2;
-            rs2 = pstate.executeQuery();
-
-            while(rs2.next()) {
-                passwordCompare = rs2.getString("mdp");
-            }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
+            
+        try {
+            PreparedStatement pstate2 = co.prepareStatement(query2);
+            pstate2.setInt(1, idClient);
+            ResultSet rs2;
+            rs2 = pstate2.executeQuery();
+
+            while(rs2.next()) {
+                passwordCompare = rs2.getString(1);
+            }
+            
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+                
+
+      
 
         if (passwordCompare.equals(password)) {
             return true;
