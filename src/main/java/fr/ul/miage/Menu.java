@@ -8,6 +8,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
 
+import javax.sound.sampled.SourceDataLine;
+
 import io.github.cdimascio.dotenv.Dotenv;
 
 public class Menu {
@@ -29,10 +31,51 @@ public class Menu {
                 inscription(sc);
 			break;
             case 2:
-                if(connexion(sc)) {
+            String password = "";
+            boolean result = false;
+            String plaqueClient = "";
+            int idReservation = 0;
+            int idClient = 0;
+            while(!result) {
+                System.out.println("Voulez vous vous connecter avec votre numéro de réservation (1) ou votre plaque d'imatriculation (2)");
+                String choice = sc.nextLine();
+                switch (choice) {
+                    case "1":
+                        System.out.println("Veuillez entrer votre numéro de réservation :");
+                        int num_res = sc.nextInt();
+                        System.out.println("Veuillez entrer votre mot de passe : ");
+                        
+                        password = sc.nextLine();
+                        result = connexionFromReservation(num_res, password);
+                        if(result){
+                            idClient = getClientIdByReservation(num_res);
+
+                        }
+                      
+                        break;
+                
+                    case "2":
+                        System.out.println("Veuillez entrer votre numéro de plaque :");
+                        plaqueClient = sc.nextLine();
+                        System.out.println("Veuillez entrer votre mot de passe : ");
+                        password = sc.nextLine();
+                        result = connexionFromPlaque(plaqueClient,password);
+                        if(result){
+                            idClient = getClientIdByPlaque(plaqueClient);
+                        }
+                        
+                        break;
+                    default:
+                        break;
+                }
+            }
+                if(result) {
                     boolean menu = false;
-                    Client client = new Client();
+                    Client client = new Client(idClient); 
+                   // client.setIdClient();
+                   System.out.println(client.getIdClient());
                     client.menu_client();
+                    
                 }
             break;
 
@@ -78,37 +121,15 @@ public class Menu {
 
     public boolean connexion(Scanner sc) {
         String password = "";
-        boolean result = false;
-        while(!result) {
-            System.out.println("Voulez vous vous connecter avec votre numéro de réservation (1) ou votre plaque d'imatriculation (2)");
-            String choice = sc.nextLine();
-            switch (choice) {
-                case "1":
-                    System.out.println("Veuillez entrer votre numéro de réservation :");
-                    String num_res = sc.nextLine();
-                    System.out.println("Veuillez entrer votre mot de passe : ");
-                    password = sc.nextLine();
-                    result = connexionFromReservation(num_res, password);
-                    break;
-            
-                case "2":
-                    System.out.println("Veuillez entrer votre numéro de plaque :");
-                    String plaque = sc.nextLine();
-                    System.out.println("Veuillez entrer votre mot de passe : ");
-                    password = sc.nextLine();
-                    result = connexionFromPlaque(plaque,password);
-                    break;
-                default:
-                    break;
-            }
-        }
-        return result;
+        boolean a=false;
+        return a;
     
     }
 
     public boolean connexionFromPlaque(String plaque, String password) {
-        String query = "SELECT mdp FROM client where plaque=(?)";
+        String query = "SELECT mdp FROM client,vehicule where client.idVehicule = vehicule.idVehicule AND vehicule.plaque=(?)";
         String passwordCompare = "";
+        int idClient = 0;
         try {
             PreparedStatement pstate = co.prepareStatement(query);
             pstate.setString(1, plaque);
@@ -116,6 +137,7 @@ public class Menu {
 
             while(rs.next()) {
                 passwordCompare = rs.getString("mdp");
+                
             }
 
         } catch (SQLException e) {
@@ -129,27 +151,30 @@ public class Menu {
             System.out.println("Erreur dans les identifiants !");
             return false;
         }
+        
     }
 
-    public boolean connexionFromReservation(String reservation, String password) {
+    public boolean connexionFromReservation(int reservation, String password) {
         String query = "SELECT idClient FROM reservation where idReservation=(?)";
         String passwordCompare = "";
-        String idClient = "";
+        int idClient = 0;
         try {
             PreparedStatement pstate = co.prepareStatement(query);
-            pstate.setString(1, reservation);
+            pstate.setInt(1, reservation);
             ResultSet rs = pstate.executeQuery();
 
             while(rs.next()) {
-                idClient = rs.getString("idClient");
+                idClient = rs.getInt("idClient");
             }
+            System.out.println(idClient);
 
             query = "SELECT mdp FROM client where idCLient=(?)";
-            pstate.setString(1, idClient);
-            rs = pstate.executeQuery();
+            pstate.setInt(1, idClient);
+            ResultSet rs2;
+            rs2 = pstate.executeQuery();
 
-            while(rs.next()) {
-                password = rs.getString("mdp");
+            while(rs2.next()) {
+                passwordCompare = rs2.getString("mdp");
             }
 
         } catch (SQLException e) {
@@ -210,6 +235,40 @@ public class Menu {
         && plaque.matches("[0-9]*");
 
         return verif;
+    }
+
+    public int getClientIdByPlaque(String plaque){
+        int id = 0;
+        try {
+            String queryClient = "SELECT idClient FROM client,vehicule where client.idVehicule = vehicule.idVehicule AND vehicule.plaque=(?)";
+            PreparedStatement pstate = co.prepareStatement(queryClient);
+            pstate.setString(1, plaque);
+            ResultSet rs = pstate.executeQuery();
+            if(rs.next()){
+                id = rs.getInt(1);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return id;
+    }
+
+    public int getClientIdByReservation(int idReservation){
+        int id = 0;
+        try {
+            String queryClient = "SELECT idClient FROM reservation where idReservation=(?)";
+            PreparedStatement pstate = co.prepareStatement(queryClient);
+            pstate.setInt(1, idReservation);
+            ResultSet rs = pstate.executeQuery();
+            if(rs.next()){
+                id = rs.getInt(1);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return id;
     }
 
 }

@@ -14,15 +14,17 @@ import java.util.concurrent.TimeUnit;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
-public class Reservation extends DatabaseConnection{
+public class Reservation{
+    static Dotenv dotenv = Dotenv.configure().load();
+    private static Connection co = DatabaseConnection.dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
 
     private int idReservation;
     private int idClient;
     private int idBorne;
-    private LocalDate date_deb;
-    private LocalDate date_fin;
+    private Timestamp date_deb;
+    private Timestamp date_fin;
 
-    public Reservation(int idReservation, int idClient, int idBorne, LocalDate date_deb, LocalDate date_fin, int duree) {
+    public Reservation(int idReservation, int idClient, int idBorne, Timestamp date_deb, Timestamp date_fin, int duree) {
         this.idReservation = idReservation;
         this.idClient = idClient;
         this.idBorne = idBorne;
@@ -56,19 +58,19 @@ public class Reservation extends DatabaseConnection{
         this.idBorne = idBorne;
     }
 
-    public LocalDate getDate_deb() {
+    public Timestamp getDate_deb() {
         return this.date_deb;
     }
 
-    public void setDate_deb(LocalDate date_deb) {
+    public void setDate_deb(Timestamp date_deb) {
         this.date_deb = date_deb;
     }
 
-    public LocalDate getDate_fin() {
+    public Timestamp getDate_fin() {
         return this.date_fin;
     }
 
-    public void setDate_fin(LocalDate date_fin) {
+    public void setDate_fin(Timestamp date_fin) {
         this.date_fin = date_fin;
     }
 
@@ -91,78 +93,62 @@ public class Reservation extends DatabaseConnection{
 
 
 
-    public static Reservation verifReservation(int idClient){
-        Dotenv dotenv = null;
-        dotenv = Dotenv.configure().load();
-        Connection co = dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
+    public static List<Reservation> verifReservation(int idClient){
         String queryReservation = "SELECT * FROM reservation WHERE idClient = (?)";
         int idBorne;
-        Date dt_deb;
-        Date dt_fin;
+        String pseudo;
+        String mdp;
+        String nom;
+        String num_tel;
+        Timestamp dt_deb;
+        Timestamp dt_fin;
         int duree;
         List<Reservation> lr = new ArrayList<Reservation>();
-        Reservation r = null;
+        
         
         try {
             PreparedStatement pstate = co.prepareStatement(queryReservation);
             pstate.setInt(1, idClient);
-            ResultSet rs =  pstate.executeQuery();
-            System.out.println("1111");
-
-           /* while(rs.next()){
-                 r = new Reservation(rs.getInt(1),rs.getInt(2),rs.getInt(3),rs.getDate(4), rs.getDate(5),rs.getInt(6));
-                System.out.println(r.toString());
-                lr.add(r);
-
-            }*/
-            if(rs.next()){
-                System.out.println("ya des données");
-            }else{
-                System.out.println("pas de données");
+            ResultSet rs =  pstate.executeQuery();    
+            while(rs.next()){
+                //idBorne = rs.getInt(1);
+                lr.add(new Reservation(rs.getInt(1),rs.getInt(2),rs.getInt(3),rs.getTimestamp(4),rs.getTimestamp(5),rs.getInt(6)));
             }
-
-            /*if(rs.next()){
-                idBorne = rs.getInt(1);
-            
-
-            } */
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
             System.out.println("e");
         }
 
-        return r;
+        return lr;
 
 
     }
 
 
-    public static Reservation affecterReservation(int idClient,LocalDate date_deb, int duree){
+    public static Reservation affecterReservation(int idClient,Timestamp date_deb, int duree){
         Reservation r = null;
         List<Integer> bornes_dispos = new ArrayList<Integer>();
         bornes_dispos.addAll(Borne.bornesDispo());
-        System.out.println(bornes_dispos.toString());
         int id_borne_dispo = 0;
         int idReservation = 0;
+        Long duration = (long) ((duree*60)*1000);
+        Timestamp date_fin = new Timestamp(date_deb.getTime()+duration);
 
         if(!bornes_dispos.isEmpty()){
             id_borne_dispo = bornes_dispos.get(0);
         }
-        Dotenv dotenv = null;
-        dotenv = Dotenv.configure().load();
-        Connection co = DatabaseConnection.dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
+    
+
         String queryReservation = "INSERT INTO Reservation (idClient,idBorne,date_deb,date_fin,duree) VALUES (?,?,?,?,?) ";
 
         try {
             PreparedStatement pstate = co.prepareStatement(queryReservation);
             pstate.setInt(1, idClient);
             pstate.setInt(2,id_borne_dispo);
-            Date convert_datedeb = Date.valueOf(date_deb);
-            pstate.setDate(3, convert_datedeb);
-            LocalDate date_fin = date_deb.plusDays(duree);
-            Date convert_datefin = Date.valueOf(date_fin);
-            pstate.setDate(4, convert_datefin);
+            pstate.setTimestamp(3, date_deb);
+           
+            pstate.setTimestamp(4, date_fin);
             pstate.setInt(5, duree);
             pstate.execute();
             int countLines = pstate.executeUpdate();
@@ -196,10 +182,7 @@ public class Reservation extends DatabaseConnection{
         long fin = 0; 
         long diff_timestamp;
 
-         //On récupère les variables d'environnement pour ouvrire la connexion
-         Dotenv dotenv = null;
-         dotenv = Dotenv.configure().load();
-         Connection co = DatabaseConnection.dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
+         
          String query = "SELECT * from reservation WHERE idReservation = (?)";
 
          try {
@@ -247,11 +230,11 @@ public class Reservation extends DatabaseConnection{
                 + idBorne + ", idClient=" + idClient + ", idReservation=" + idReservation + "]";
     }
 
-    public LocalDate convertToLocalDateViaInstant(Date dateToConvert) {
+ /*   public Timestamp convertToTimestampViaInstant(Date dateToConvert) {
         return dateToConvert.toInstant()
           .atZone(ZoneId.systemDefault())
           .toLocalDate();
-    }
+    }*/
 
     
 }

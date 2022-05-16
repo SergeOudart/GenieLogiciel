@@ -6,10 +6,30 @@ import java.util.Scanner;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
-public class Client {    
+public class Client { 
+    static Dotenv dotenv = Dotenv.configure().load();
+    private static Connection co = DatabaseConnection.dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
+    
+    public int getIdClient() {
+        return idClient;
+    }
+
+    public void setIdClient(int idClient) {
+        this.idClient = idClient;
+    }
+
+
+
+
+    private int idClient;
 
     public Client(){
         super();
+    }
+
+   
+    public Client(int idClient) {
+        this.idClient = idClient;
     }
 
     public void menu_client()
@@ -20,7 +40,7 @@ public class Client {
         boolean quitter = false;
 
         while(!quitter) {
-            System.out.println("Menu client : Se déconnecter (3) Modifier des infos client (4) Supprimer un client (5)  Verifier reservation (6) Bornes dispo (7) Quitter (8)");
+            System.out.println("Menu client : Se déconnecter (3) Modifier des infos client (4) Supprimer un client (5) Réserver une borne (6) Verifier reservation (7) Bornes dispo (8) Quitter (8)");
             int choice = sc.nextInt();
 
             switch (choice) {            
@@ -61,29 +81,29 @@ public class Client {
                     }
                     break;
                 case 6:
+                    System.out.println("Saisir un numéro d'immatriculation");
+                    int num_immatriculation = sc.nextInt();
+
+                case 7:
                     System.out.println("Saisir l'id d'un client pour vérifier ses réservations");
                     int id_cl_reservation = sc.nextInt();
+                    List<Reservation> liste_reservations = new ArrayList<>();
                     try {
-                        lr.add(Reservation.verifReservation(id_cl_reservation));
+                        liste_reservations.addAll(Reservation.verifReservation(id_cl_reservation));
+                        System.out.println(liste_reservations.toString());
                     
                     //List<Reservation> checkReservation = new ArrayList<Reservation>();
                     //checkReservation.add((Reservation) Reservation.verifReservation(id_cl_reservation));
-                    System.out.println(Reservation.verifReservation(id_cl_reservation));
+                 
                     // System.out.println(checkReservation.toString());
-                    System.out.println("op");
-
-                    
                         
                         
                     } catch (Exception e) {
-                        //TODO: handle exception
-                        System.out.println("marche pas");
+                        e.printStackTrace();
                     }
 
                     break;
-                    case 7:
-                        System.out.println(Borne.bornesDispo());
-                    break;
+                    
 
                     case 8:
                         quitter = true;
@@ -166,6 +186,35 @@ public class Client {
 			co.close();
 		}
 	}
+
+   
+
+    /*public String verifPlaque(String plaque){
+
+        String plaqueClient= getClientIdByPlaque(plaque);
+        try {
+            String queryClient = "SELECT plaque FROM vehicule,client WHERE plaque = (?) AND vehicule.idVehicule = client.idVehicule ";
+            PreparedStatement pstate = co.prepareStatement(queryClient);
+            pstate.setString(1, plaque);
+            ResultSet rs = pstate.executeQuery();
+            if(rs.next()){
+                plaqueClient = rs.getString(1);
+            }else{
+                String queryTemporaire = "INSERT INTO clientVehicule (idClient,idVehicule) VALUES (?),("
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return plaqueClient;
+
+
+
+
+        
+
+    }*/
     
 
 

@@ -48,22 +48,17 @@ public class Borne {
         dotenv = Dotenv.configure().load();
         Connection co = DatabaseConnection.dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
         String queryBorne = "SELECT idBorne FROM Borne WHERE etat = 'disponible' ";
-
-        try {
-            PreparedStatement pstate = co.prepareStatement(queryBorne);
-            ResultSet rs = pstate.executeQuery();
-            while(rs.next()){
-                liste.add(rs.getInt(1));
+            try {
+                PreparedStatement pstate = co.prepareStatement(queryBorne);
+                ResultSet rs = pstate.executeQuery();
+                while(rs.next()){
+                    liste.add(rs.getInt(1));
+                }
+            } catch (SQLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
             }
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-
-
         return liste;
-
 
     }
 
