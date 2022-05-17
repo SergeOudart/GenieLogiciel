@@ -175,6 +175,28 @@ public class Reservation{
         return r;
     }
 
+    public void changerBorneEtatReserveeParIdReservation(int idReservation) {
+        String query = "UPDATE borne,reservation SET borne.etat='reservee' WHERE borne.idBorne = reservation.idBorne AND reservation.idReservation=(?)";
+        try {
+            PreparedStatement requete = co.prepareStatement(query);
+            requete.setInt(1, idReservation);
+            requete.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void changerBorneEtatDispoParIdReservation(int idReservation) {
+        String query = "UPDATE borne,reservation SET borne.etat='disponible' WHERE borne.idBorne = reservation.idBorne AND reservation.idReservation=(?)";
+        try {
+            PreparedStatement requete = co.prepareStatement(query);
+            requete.setInt(1, idReservation);
+            requete.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public boolean checkProlongerReservation(int idReservation){ //Vérifier dans combien de minutes est l'expiration de réservation
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         Timestamp timestamp2;

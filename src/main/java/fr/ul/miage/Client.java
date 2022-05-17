@@ -1,5 +1,6 @@
 package fr.ul.miage;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -40,15 +41,13 @@ public class Client {
         boolean quitter = false;
 
         while(!quitter) {
-            System.out.println("Menu client : Se déconnecter (3) Modifier des infos client (4) Supprimer un client (5) Réserver une borne (6) Verifier reservation (7) Bornes dispo (8) Quitter (8)");
+            System.out.println("Menu client : Se présenter à une borne (2) Se déconnecter (3) Modifier des infos client (4) Supprimer un client (5) Réserver une borne (6) Verifier reservation (7) Bornes dispo (8) Quitter (8)");
             int choice = sc.nextInt();
 
             switch (choice) {            
                 case 2:
-                    System.out.println("Numéro de plaque / numéro de réservation : \n");
-                    String identifiant = sc.next();
-
-                    // database.fetchPassword(identifiant);
+                    presenterBorne();
+                    
                     break;
 
                 default:
@@ -82,7 +81,10 @@ public class Client {
                     break;
                 case 6:
                     System.out.println("Saisir un numéro d'immatriculation");
-                    int num_immatriculation = sc.nextInt();
+                    String num_immatriculation = sc.next();
+                    /**
+                     * TODO Appeler affecter reservation
+                     */
 
                 case 7:
                     System.out.println("Saisir l'id d'un client pour vérifier ses réservations");
@@ -159,6 +161,99 @@ public class Client {
 		
 	}
 
+    public void presenterBorne() {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Avez vous un numéro de réservation ? (oui/non)");
+        String num_res_exist = sc.next();
+        int idClient = 0;
+        int idBorne = 0;
+        Timestamp date_deb = new Timestamp(System.currentTimeMillis());
+        Timestamp date_fin = new Timestamp(System.currentTimeMillis());
+        int duree = 0;
+        switch (num_res_exist) {
+            case "oui":
+            System.out.println("Entrez votre numéro de réservation :");
+            int num_res = sc.nextInt();
+            try {
+                PreparedStatement requete = co.prepareStatement("SELECT * from reservation where idReservation=(?)");
+                requete.setInt(1, num_res);
+                ResultSet rs = requete.executeQuery();
+
+                while (rs.next()) {
+                    idClient = rs.getInt("idClient");
+                    idBorne = rs.getInt("idBorne");
+                    date_deb = rs.getTimestamp("date_deb");
+                    date_fin = rs.getTimestamp("date_fin");
+                    duree = rs.getInt("duree");
+                }
+                Reservation reservation = new Reservation(num_res,idClient,idBorne,date_deb,date_fin,duree);
+                SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+                
+                /**
+                 * >= 0 --> A l'heure ou en avance
+                 * < 0 --> En retard
+                 */
+                if(date_deb.compareTo(Timestamp.valueOf(sdf1.format(timestamp))) >= 0) {
+                    System.out.println("Vous êtes à l'heure, rechargement du véhicule ...");
+                    reservation.changerBorneEtatReserveeParIdReservation(num_res);
+                    boolean fini = false;
+                    while(!fini) {
+                        System.out.println("Voulez vous arrêter le rechargement ? (oui)");
+                        String choix = sc.next();
+                        if (choix.equals("oui")) {
+                            fini = true;
+                        }
+                    }
+                    Timestamp heure_depart = new Timestamp(System.currentTimeMillis());
+                    heure_depart = Timestamp.valueOf(sdf1.format(heure_depart));
+                    finaliserRecharge(num_res, heure_depart,reservation);
+
+                    /**
+                     * TODO Faire paiement + calcul prix
+                     */
+                } else if(date_deb.compareTo(Timestamp.valueOf(sdf1.format(timestamp))) < 0) {
+                    System.out.println("Vous êtes en retard, ");
+                    /**
+                     * Gérer temps supplémentaire periode d'attente
+                     */
+                }
+
+            } catch (SQLException e) 
+
+
+            {
+            }
+                break;
+        
+            default:
+                break;
+        }
+    }
+
+    public void arriverATemps() {
+        
+    }
+
+    public void finaliserRecharge(int idReservation, Timestamp date_depart, Reservation reservation) {
+        System.out.println("Rechargement terminé");
+        reservation.changerBorneEtatDispoParIdReservation(idReservation);
+        String query = "UPDATE reservation SET date_depart = (?) where idReservation=(?)";
+        try {
+            PreparedStatement requete = co.prepareStatement(query);
+            requete.setTimestamp(1, date_depart);
+            requete.setInt(1, idReservation);
+            requete.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /*public boolean paiement() {
+        System.out.println("Paiement en cours ...");
+        
+    }*/
+
 
     public boolean verifEntry(String pseudo, String mdp, String nom, String prenom, String num_tel, String num_carte, String mail, String plaque, String role) 
     {
@@ -189,32 +284,45 @@ public class Client {
 
    
 
-   /* public String verifPlaque(String plaque){
-
-        String plaqueClient= getClientIdByPlaque(plaque);
+    public void verifPlaque(String plaque,int idClient){
+        String resRequete="";
+        int idVehicule = 0;
+        boolean verifAssociation = false;
+        boolean estLoue = false;
         try {
-            String queryClient = "SELECT plaque FROM vehicule,client WHERE plaque = (?) AND vehicule.idVehicule = client.idVehicule ";
-            PreparedStatement pstate = co.prepareStatement(queryClient);
-            pstate.setString(1, plaque);
-            ResultSet rs = pstate.executeQuery();
-            if(rs.next()){
-                plaqueClient = rs.getString(1);
+            String queryPlaqueExiste = "SELECT plaque,vehicule.idVehicule,estLoue FROM vehicule,client WHERE plaque = (?) AND vehicule.idVehicule = client.idVehicule";
+            PreparedStatement ps = co.prepareStatement(queryPlaqueExiste);
+            ps.setString(1, plaque);
+            ResultSet rs1 = ps.executeQuery();
+            if(rs1.next()){
+                System.out.println("La plaque renseignée est la même que dans le profil client");
             }else{
-                String queryTemporaire = "INSERT INTO clientVehicule (idClient,idVehicule) VALUES (?),("
+                String queryClient = "SELECT plaque,vehicule.idVehicule,estLoue FROM vehicule,client WHERE plaque = (?)";
+                PreparedStatement pstate = co.prepareStatement(queryClient);
+                pstate.setString(1, plaque);
+                ResultSet rs = pstate.executeQuery();
+                if(rs.next()){
+                    resRequete = rs.getString(1);
+                    idVehicule = rs.getInt(2);
+                    estLoue = rs.getBoolean(3); 
+                }
+                if(estLoue == false){
+                    String queryTemporaire = "INSERT INTO clientvehicule (idClient,idVehicule) VALUES (?,?)";
+                    PreparedStatement pstate2 = co.prepareStatement(queryTemporaire);
+                    pstate2.setInt(1,idClient);
+                    pstate2.setInt(2,idVehicule);
+                    pstate2.execute();
+                } 
+
             }
-            
+
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return plaqueClient;
 
-
-
-
-        
-
-    }*/
+    }
     
 
 
