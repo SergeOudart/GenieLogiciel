@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -126,32 +127,36 @@ public class Reservation{
     }
 
 
-    public static Reservation affecterReservation(int idClient,Timestamp date_deb, int duree){
+    public static Reservation affecterReservation(int idClient,Timestamp date_deb,int heure_deb, int duree){
         Reservation r = null;
         List<Integer> bornes_dispos = new ArrayList<Integer>();
         bornes_dispos.addAll(Borne.bornesDispo());
         int id_borne_dispo = 0;
         int idReservation = 0;
-        Long duration = (long) ((duree*60)*1000);
-        Timestamp date_fin = new Timestamp(date_deb.getTime()+duration);
-
+        Long duration1  = (long) (heure_deb*60); 
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(date_deb.getTime());
+        cal.add(Calendar.HOUR,heure_deb);
+        Timestamp date_deb_convertie = new Timestamp(cal.getTime().getTime());
+        Calendar cal_fin = Calendar.getInstance();
+        cal_fin.setTimeInMillis(date_deb_convertie.getTime());
+        cal_fin.add(Calendar.HOUR,duree);
+        Timestamp date_fin = new Timestamp(cal_fin.getTime().getTime());
+        
         if(!bornes_dispos.isEmpty()){
             id_borne_dispo = bornes_dispos.get(0);
         }
-    
-
         String queryReservation = "INSERT INTO Reservation (idClient,idBorne,date_deb,date_fin,duree) VALUES (?,?,?,?,?) ";
-
         try {
             PreparedStatement pstate = co.prepareStatement(queryReservation);
             pstate.setInt(1, idClient);
             pstate.setInt(2,id_borne_dispo);
-            pstate.setTimestamp(3, date_deb);
-           
+            pstate.setTimestamp(3, date_deb_convertie);
             pstate.setTimestamp(4, date_fin);
             pstate.setInt(5, duree);
             pstate.execute();
             int countLines = pstate.executeUpdate();
+
             if(countLines > 0){
                 System.out.println("a");
                 String queryId = "SELECT idReservation from reservation WHERE idClient = (?) AND idBorne = (?)";
@@ -162,9 +167,7 @@ public class Reservation{
                 if(rs.next()){
                     idReservation = rs.getInt(1);
                 }
-                System.out.println(idReservation);
                 r = new Reservation(idReservation,idClient,id_borne_dispo,date_deb,date_fin,duree);
-                System.out.println(r.toString());
             }
 
             
@@ -247,11 +250,9 @@ public class Reservation{
 
     }
 
- /*   public Timestamp convertToTimestampViaInstant(Date dateToConvert) {
-        return dateToConvert.toInstant()
-          .atZone(ZoneId.systemDefault())
-          .toLocalDate();
-    }*/
+    
+
+
 
     
 }
