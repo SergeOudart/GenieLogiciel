@@ -10,9 +10,13 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import com.google.protobuf.Timestamp;
+
 import io.github.cdimascio.dotenv.Dotenv;
 
 public class Borne {
+    static Dotenv dotenv = Dotenv.configure().load();
+    private static Connection co = DatabaseConnection.dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
 
 
 
@@ -62,11 +66,49 @@ public class Borne {
 
     }
 
+    public static List<Integer> bornesDispoIntervalle(java.sql.Timestamp date_deb){
+        List<Integer> liste = new ArrayList<Integer>();
+        String queryBorneDispo = "SELECT borne.idBorne FROM borne,reservation WHERE etat = 'disponible' AND borne.idBorne = reservation.idBorne AND (?) > date_fin";
+        try {
+            PreparedStatement pstate = co.prepareStatement(queryBorneDispo);
+            pstate.setTimestamp(1, date_deb);
+            ResultSet rs = pstate.executeQuery();
+            while(rs.next()){
+                liste.add(rs.getInt(1));
+            }
+        } catch (SQLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        System.out.println(liste.toString());
+        return liste;
+    }
+
     public static Date addDays(Date date, int days) {
         Calendar c = Calendar.getInstance();
         c.setTime(date);
         c.add(Calendar.DATE, days);
         return new Date(c.getTimeInMillis());
+    }
+
+    public static void borneEnAttente(int idReservation){
+        String query = "SELECT date_fin FROM reservation WHERE idReservation = (?)";
+        try {
+            PreparedStatement pstate = co.prepareStatement(query);
+            ResultSet rs = pstate.executeQuery();
+            if(rs.next()){
+                java.sql.Timestamp timestamp = rs.getTimestamp(1);
+                int compareDate = timestamp.compareTo(new java.sql.Timestamp(System.currentTimeMillis()));
+                if(compareDate < 0){
+                    String query2 = "UPDATE borne,reservation SET borne.etat='en attente' WHERE borne.idBorne = reservation.idBorne AND reservation.idReservation=(?)";
+                    PreparedStatement pstate2 = co.prepareStatement(query2);
+                    pstate2.execute();
+                }
+            }
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+
     }
 
     

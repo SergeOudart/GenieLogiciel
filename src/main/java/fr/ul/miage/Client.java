@@ -113,6 +113,15 @@ public class Client {
                     case 8:
                         quitter = true;
                     break;
+                    case 9:
+                    System.out.println("Saisir un numéro de réservation");
+                    int num = sc.nextInt();
+                    System.out.println("Saisir la durée de prolongation");
+                    int duree_pro = sc.nextInt();
+                    Reservation r2 = Reservation.prolongerReservation(num,duree_pro);
+
+
+                    break;
                 
                 }
             }
