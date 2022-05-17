@@ -82,7 +82,10 @@ public class Client {
                     break;
                 case 6:
                     System.out.println("Saisir un numéro d'immatriculation");
-                    int num_immatriculation = sc.nextInt();
+                    String num_immatriculation = sc.next();
+                    System.out.println(idClient);
+                    verifPlaque(num_immatriculation, idClient);
+                    break;
 
                 case 7:
                     System.out.println("Saisir l'id d'un client pour vérifier ses réservations");
@@ -189,32 +192,46 @@ public class Client {
 
    
 
-   /* public String verifPlaque(String plaque){
-
-        String plaqueClient= getClientIdByPlaque(plaque);
+    public void verifPlaque(String plaque,int idClient){
+        String resRequete="";
+        int idVehicule = 0;
+        boolean verifAssociation = false;
+        boolean estLoue = false;
+        // int idClient = Menu.getClientIdByPlaque(plaque);
         try {
-            String queryClient = "SELECT plaque FROM vehicule,client WHERE plaque = (?) AND vehicule.idVehicule = client.idVehicule ";
-            PreparedStatement pstate = co.prepareStatement(queryClient);
-            pstate.setString(1, plaque);
-            ResultSet rs = pstate.executeQuery();
-            if(rs.next()){
-                plaqueClient = rs.getString(1);
+            String queryPlaqueExiste = "SELECT plaque,vehicule.idVehicule,estLoue FROM vehicule,client WHERE plaque = (?) AND vehicule.idVehicule = client.idVehicule";
+            PreparedStatement ps = co.prepareStatement(queryPlaqueExiste);
+            ps.setString(1, plaque);
+            ResultSet rs1 = ps.executeQuery();
+            if(rs1.next()){
+                System.out.println("La plaque renseignée est la même que dans le profil client");
             }else{
-                String queryTemporaire = "INSERT INTO clientVehicule (idClient,idVehicule) VALUES (?),("
+                String queryClient = "SELECT plaque,vehicule.idVehicule,estLoue FROM vehicule,client WHERE plaque = (?)";
+                PreparedStatement pstate = co.prepareStatement(queryClient);
+                pstate.setString(1, plaque);
+                ResultSet rs = pstate.executeQuery();
+                if(rs.next()){
+                    resRequete = rs.getString(1);
+                    idVehicule = rs.getInt(2);
+                    estLoue = rs.getBoolean(3); 
+                }
+                if(estLoue == false){
+                    String queryTemporaire = "INSERT INTO clientvehicule (idClient,idVehicule) VALUES (?,?)";
+                    PreparedStatement pstate2 = co.prepareStatement(queryTemporaire);
+                    pstate2.setInt(1,idClient);
+                    pstate2.setInt(2,idVehicule);
+                    pstate2.execute();
+                } 
+
             }
+             
             
         } catch (Exception e) {
             e.printStackTrace();
         }
+     
 
-        return plaqueClient;
-
-
-
-
-        
-
-    }*/
+    }
     
 
 

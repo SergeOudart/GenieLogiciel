@@ -230,6 +230,23 @@ public class Reservation{
                 + idBorne + ", idClient=" + idClient + ", idReservation=" + idReservation + "]";
     }
 
+    public boolean arriveeRetard(int idReservation){
+        String query = "UPDATE borne SET etat ='periode attente' WHERE borne.idBorne = reservation.idBorne and reservation.idReservation = (?)";
+        try {
+            PreparedStatement pstate = co.prepareStatement(query);
+            pstate.setInt(1, idReservation);
+            pstate.execute();
+            int countLines = pstate.executeUpdate();
+            if(countLines > 0){
+                System.out.println("Période d'attente de 15 minutes concernant votre réservation");
+            }    
+        } catch (Exception e) {
+            //TODO: handle exception
+        }  
+        return false;
+
+    }
+
  /*   public Timestamp convertToTimestampViaInstant(Date dateToConvert) {
         return dateToConvert.toInstant()
           .atZone(ZoneId.systemDefault())
