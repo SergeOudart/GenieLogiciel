@@ -83,11 +83,29 @@ public class Client {
                     }
                     break;
                 case 6:
-                    System.out.println("Saisir un numéro d'immatriculation");
-                    String num_immatriculation = sc.next();
-                    /**
-                     * TODO Appeler affecter reservation
-                     */
+                System.out.println("Saisir un numéro d'immatriculation");
+                String num_immatriculation = sc.next();
+                System.out.println(idClient);
+                verifPlaque(num_immatriculation, idClient);
+                System.out.println("Saisir une date de début concernant la réservation");
+                String date = sc.next();
+                try {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    // java.util.Date parsedDate = dateFormat.parse(date);
+                    // Timestamp date_deb = new java.sql.Timestamp(parsedDate.getTime());
+                    Timestamp date_deb = new Timestamp((dateFormat.parse(date)).getTime());
+                    System.out.println("Saisir une heure de début");
+                    int heure_debut = sc.nextInt();
+                    System.out.println("Saisir une durée pour la réservation");
+                    int duree_reservation = sc.nextInt();
+                    r = Reservation.affecterReservation(idClient, date_deb,heure_debut, duree_reservation);
+                    System.out.println(r.toString());
+
+                } catch (Exception e1) {
+                    // TODO Auto-generated catch block
+                    e1.printStackTrace();
+                }
+                break;
 
                 case 7:
                     System.out.println("Saisir l'id d'un client pour vérifier ses réservations");
@@ -280,7 +298,7 @@ public class Client {
             PreparedStatement requete = co.prepareStatement(query);
             requete.setTimestamp(1, date_depart);
             requete.setInt(2, idReservation);
-            requete.executeUpdate();
+            requete.executeUpdate();     //A mute pour tester
         } catch (SQLException e) {
             e.printStackTrace();
         }
