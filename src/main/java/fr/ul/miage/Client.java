@@ -224,31 +224,7 @@ public class Client {
                  * < 0 --> En retard
                  */
                 if(date_deb.compareTo(Timestamp.valueOf(sdf1.format(timestamp))) >= 0) {
-                    System.out.println("Vous êtes à l'heure, rechargement du véhicule ...");
-                    reservation.changerBorneEtatReserveeParIdReservation(num_res);
-                    boolean fini = false;
-                    while(!fini) {
-                        System.out.println("Voulez vous arrêter le rechargement ? (oui)");
-                        String choix = sc.next();
-                        if (choix.equals("oui")) {
-                            fini = true;
-                        }
-                    }
-                    Timestamp heure_depart = new Timestamp(System.currentTimeMillis());
-                    heure_depart = Timestamp.valueOf(sdf1.format(heure_depart));
-                    //Timestamp heure_depart = getHeureDepart();                    /* TODO Pour tester les dépassement d'heures / pas supprimer*/
-                    finaliserRecharge(num_res, heure_depart,reservation);
-                    
-
-                    long time = heure_depart.getTime() - date_deb.getTime();
-                    long hours = TimeUnit.MILLISECONDS.toHours(time);
-
-                    long depass = heure_depart.getTime() - date_fin.getTime();
-                    long minutes_dep = TimeUnit.MILLISECONDS.toMinutes(depass);
-
-                    int prix = paiement(hours, minutes_dep, false);
-
-                    facturation(idClient, num_res, prix, heure_depart);
+                    arriverATemps(num_res, reservation, date_deb, date_fin, sdf1);
 
                 } else if(date_deb.compareTo(Timestamp.valueOf(sdf1.format(timestamp))) < 0) {
                     System.out.println("Vous êtes en retard, ");
@@ -286,8 +262,43 @@ public class Client {
         return heure;
     }
 
-    public void arriverATemps() {
+    public void arriverATemps(int num_res, Reservation reservation, Timestamp date_deb, Timestamp date_fin, SimpleDateFormat sdf1) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Vous êtes à l'heure, rechargement du véhicule ...");
+        reservation.changerBorneEtatReserveeParIdReservation(num_res);
+        boolean fini = false;
+        while(!fini) {
+            System.out.println("Voulez vous arrêter le rechargement ? (oui)");
+            String choix = sc.next();
+            if (choix.equals("oui")) {
+                fini = true;
+            }
+        }
+        Timestamp heure_depart = new Timestamp(System.currentTimeMillis());
+        heure_depart = Timestamp.valueOf(sdf1.format(heure_depart));
+        //Timestamp heure_depart = getHeureDepart();                    /* TODO Pour tester les dépassement d'heures / pas supprimer*/
+        finaliserRecharge(num_res, heure_depart,reservation);
         
+
+        long time = heure_depart.getTime() - date_deb.getTime();
+        long hours = TimeUnit.MILLISECONDS.toHours(time);
+
+        long depass = heure_depart.getTime() - date_fin.getTime();
+        long minutes_dep = TimeUnit.MILLISECONDS.toMinutes(depass);
+
+        int prix = paiement(hours, minutes_dep, false);
+
+        facturation(idClient, num_res, prix, heure_depart);
+        sc.close();
+    }
+
+    public void arriverEnRetard(int idReservation) {
+        if (dansPeriodeAttente(idReservation)) {
+            System.out.println("Vous êtes dans la période d'attente. ");
+        } else {
+            System.out.println("Vous avez dépassé le délais d'attente, vérification des bornes disponibles...");
+            //verifBornesDIspo
+        }
     }
 
     public void finaliserRecharge(int idReservation, Timestamp date_depart, Reservation reservation) {
@@ -342,6 +353,35 @@ public class Client {
         + "Numéro de reservation : " + idReservation + "\n"
         + "Prix : " + prix + " euros \n"
         + "Date : " + date);
+    }
+
+    public boolean dansPeriodeAttente(int idReservation) {
+        String query = "SELECT date_deb from reservation where idReservation=(?)";
+        Timestamp date_deb = new Timestamp(System.currentTimeMillis());
+        Timestamp heure_actu = new Timestamp(System.currentTimeMillis());
+        boolean result = false;
+        try {
+            PreparedStatement stmt = co.prepareStatement(query);
+            stmt.setInt(1, idReservation);
+            ResultSet rs = stmt.executeQuery();
+
+            while(rs.next()) {
+                date_deb = rs.getTimestamp("date_deb");
+            }
+
+            long time = heure_actu.getTime() - date_deb.getTime();
+
+            if (TimeUnit.MILLISECONDS.toMinutes(time) > 0) {
+                result = true;
+            } else {
+                result = false;
+            }
+
+        } catch (SQLException e) {
+
+        }
+
+        return result;
     }
 
 

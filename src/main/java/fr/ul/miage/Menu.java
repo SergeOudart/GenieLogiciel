@@ -17,7 +17,7 @@ public class Menu {
     Dotenv dotenv = Dotenv.configure().load();
     private Connection co = DatabaseConnection.dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
 
-    public void Demarrer(){
+    public void demarrer(){
 
         Scanner sc = new Scanner(System.in);
 		System.out.println("Choisissez une option : Inscription (1) Connexion (2)");
