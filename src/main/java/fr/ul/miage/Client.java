@@ -38,6 +38,11 @@ public class Client {
 
     public void menu_client()
     {
+
+        /**
+         *  TODO Si un client ne se présente pas au début de son créneau réservé, la borne de recharge sera maintenue réservée pendant une "période d’attente"
+         */
+
         Scanner sc = new Scanner(System.in);
         Reservation r = new Reservation();
         List<Reservation> lr = new ArrayList<Reservation>();
@@ -266,8 +271,30 @@ public class Client {
 
                         
                     } else {
-                        System.out.println("Vous avez dépassé le délais d'attente, vérification des bornes disponibles...");
-                        //verifBornesDIspo
+                        System.out.println("Vous avez dépassé le délais d'attente, vérification des bornes disponibles");
+                        System.out.println("Combien de temps voulez vous rester ?");
+                        int dureeRetard = sc.nextInt();
+                        Timestamp date_arrivee = new Timestamp(System.currentTimeMillis());
+                        List<Integer> borneDispo = Borne.bornesDispoDebutFin(date_arrivee, dureeRetard);
+                        if (!borneDispo.isEmpty()) {
+                            System.out.println("La borne " + borneDispo.get(0) + " est disponible.");
+                            Borne.setOccupeeParId(borneDispo.get(0));
+                            boolean fini = false;
+                            while(!fini) {
+                                System.out.println("Voulez vous arrêter le rechargement ? (oui)");
+                                String choix = sc.next();
+                                if (choix.equals("oui")) {
+                                    fini = true;
+                                }
+                            }
+                            Timestamp date_depart = new Timestamp(System.currentTimeMillis());
+                            Borne.setDispoParId(borneDispo.get(0));
+                            long time = date_depart.getTime() - date_deb.getTime();
+                            long hours = TimeUnit.MILLISECONDS.toHours(time);
+                            int prix = paiement(hours, 0, false);
+                            facturationSansReservation(idClient, prix, date_depart);        //TODO facture à 0 euros problème
+            
+                        }
                     }
             
                 }
@@ -279,6 +306,10 @@ public class Client {
             }
                 break;
         
+            case "non":
+
+                break;
+
             default:
                 break;
         }
@@ -365,12 +396,19 @@ public class Client {
         } catch(SQLException e) {
 
         }
+    }
 
-        System.out.println("Votre facture : \n"
-        + "idClient : " + idClient + "\n"
-        + "Numéro de reservation : " + idReservation + "\n"
-        + "Prix : " + prix + " euros \n"
-        + "Date : " + date);
+    public void facturationSansReservation(int idClient, int prix, Timestamp date) {
+        String query = "INSERT INTO facture(idClient, prix, date) values (?,?,?)";
+        try {
+            PreparedStatement stmt = co.prepareStatement(query);
+            stmt.setInt(1, idClient);
+            stmt.setInt(2, prix);
+            stmt.setTimestamp(3, date);
+            stmt.execute();
+        } catch(SQLException e) {
+
+        }
     }
 
     public boolean dansPeriodeAttente(Timestamp date_deb) {
@@ -380,7 +418,7 @@ public class Client {
 
         long time = heure_actu.getTime() - date_deb.getTime() + 900000;
 
-        if (TimeUnit.MILLISECONDS.toMinutes(time) > 0) {
+        if (TimeUnit.MILLISECONDS.toMinutes(time) < 15) {
             result = true;
         } else {
             result = false;
