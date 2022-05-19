@@ -1,5 +1,6 @@
 package fr.ul.miage;
 import java.sql.*;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ public class Client {
     {
         Scanner sc = new Scanner(System.in);
         Reservation r = new Reservation();
+        Contrat contrat = new Contrat();
         List<Reservation> lr = new ArrayList<Reservation>();
         boolean quitter = false;
 
@@ -140,10 +142,34 @@ public class Client {
 
 
                     break;
+                    case 10:
+                    System.out.println("Saisir une date de début pour votre réservation");
+                    String dateDeb = sc.next();
+                    System.out.println("Saisir la durée pendant laquelle vous souhaitez rester chaque jour");
+                    int duree = sc.nextInt();
+            
+                    try {
+                        Timestamp dateConvert = formatterDate(dateDeb);
+                        contrat = Reservation.reservationPermanente(idClient, dateConvert, duree);
+                        System.out.println(contrat.toString());
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+                    
+                    
+
+                    break;
                 
                 }
             }
         sc.close();
+    }
+
+    public Timestamp formatterDate(String date) throws ParseException{
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        Timestamp dateFormatee = new Timestamp((dateFormat.parse(date)).getTime());
+        return dateFormatee;
+
     }
 
     
@@ -457,5 +483,25 @@ public class Client {
 
         return diffMinutes;
     }
+
+    public boolean verifContratClient(int idClient)
+    {
+        boolean contratExiste = false;
+        String queryClient = "SELECT 1 FROM contrat WHERE idClient = (?)";
+        try {
+            PreparedStatement pstate = co.prepareStatement(queryClient);
+            ResultSet rs = pstate.executeQuery();
+            if(rs.next()){
+                contratExiste = true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return contratExiste;
+    }
+
+    
+
+    
 
 }

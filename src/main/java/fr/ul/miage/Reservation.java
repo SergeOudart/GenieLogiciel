@@ -28,8 +28,8 @@ public class Reservation{
 
     private int idReservation;
     private int idClient;
-    private int idBorne;
-    private Timestamp date_deb;
+    private static int idBorne;
+    private static Timestamp date_deb;
     private Timestamp date_fin;
     private Timestamp date_depart;
 
@@ -145,6 +145,7 @@ public class Reservation{
 
 
     public static Reservation affecterReservation(int idClient,Timestamp date_deb,int heure_deb, int duree){
+        //Verifier si un contrat permanent existe avant d'affecter une réservation
         Reservation r = null;
         List<Integer> bornes_dispos = new ArrayList<Integer>();
         bornes_dispos.addAll(Borne.bornesDispo());
@@ -315,6 +316,68 @@ public class Reservation{
         return r;
 
     }
+
+    public static boolean verifDateExpiration(Timestamp timestamp){
+        Timestamp timestamp2 = new Timestamp(System.currentTimeMillis());
+        long dateFin = timestamp.getTime();
+        long mtn = timestamp2.getTime();
+        long diff = mtn - dateFin;
+        long diffMinutes = diff / (60*1000);
+        if(diffMinutes < 30){
+            return false;
+        }
+        return true;
+    }
+
+
+    public static Contrat reservationPermanente(int idClient,Timestamp date_debut,int duree){
+        List<Integer> bornes = new ArrayList<Integer>();
+        bornes.addAll(Borne.bornesDispoIntervalle(date_debut));
+        // List<Integer> bornesDispo = Borne.bornesDispoIntervalle(date_debut);
+        System.out.println(bornes);
+        Contrat contrat = null;
+        int idContrat = 0;
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(date_debut.getTime());
+        cal.add(Calendar.DAY_OF_MONTH,30);
+        int affecterBorne = 0;
+        if(!bornes.isEmpty()){
+            System.out.println("test");
+            affecterBorne = bornes.get(0);
+            Timestamp date_fin = new Timestamp(cal.getTime().getTime());
+        String queryReservation = "INSERT INTO contrat (idClient,idBorne,dateDebut,dateFin,duree) VALUES (?,?,?,?,?)";
+        try {
+            PreparedStatement pstate = co.prepareStatement(queryReservation);
+            pstate.setInt(1, idClient);
+            pstate.setInt(2, affecterBorne);
+            pstate.setTimestamp(3, date_debut);
+            pstate.setTimestamp(4, date_fin);
+            pstate.setInt(5, duree);
+            pstate.execute();
+        } catch (Exception e) {
+            
+        }
+        String queryIdContrat = "SELECT idContrat FROM contrat WHERE idClient = (?)";
+        try {
+            PreparedStatement pstate = co.prepareStatement(queryIdContrat);
+            pstate.setInt(1, idClient);
+            ResultSet rs = pstate.executeQuery();
+            if(rs.next()){
+                idContrat = rs.getInt(1);
+                
+            }
+        contrat = new Contrat(idContrat, idClient, affecterBorne, date_debut, date_fin, duree);
+        } catch (Exception e) {
+            
+        }
+        }else{
+            System.out.println("Pas de borne disponible pour ce créneau");
+        }
+        
+        return contrat;
+    }
+
+    
 
     @Override
     public String toString() {

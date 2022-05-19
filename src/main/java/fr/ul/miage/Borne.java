@@ -48,9 +48,6 @@ public class Borne {
 
     public static List<Integer> bornesDispo(){
         List<Integer> liste = new ArrayList<Integer>();
-        Dotenv dotenv = null;
-        dotenv = Dotenv.configure().load();
-        Connection co = DatabaseConnection.dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
         String queryBorne = "SELECT idBorne FROM Borne WHERE etat = 'disponible' ";
             try {
                 PreparedStatement pstate = co.prepareStatement(queryBorne);
@@ -68,6 +65,17 @@ public class Borne {
 
     public static List<Integer> bornesDispoIntervalle(java.sql.Timestamp date_deb){
         List<Integer> liste = new ArrayList<Integer>();
+
+        String queryBorne1 = "SELECT DISTINCT borne.idBorne FROM borne,reservation WHERE borne.etat = 'disponible' AND borne.idBorne NOT IN (SELECT idBorne FROM reservation)";
+        try {
+            PreparedStatement pstate = co.prepareStatement(queryBorne1);
+            ResultSet rs = pstate.executeQuery(); 
+            while(rs.next()){
+                liste.add(rs.getInt(1));
+            }
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
         String queryBorneDispo = "SELECT borne.idBorne FROM borne,reservation WHERE etat = 'disponible' AND borne.idBorne = reservation.idBorne AND (?) > date_fin";
         try {
             PreparedStatement pstate = co.prepareStatement(queryBorneDispo);
@@ -77,10 +85,14 @@ public class Borne {
                 liste.add(rs.getInt(1));
             }
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
+            
             e.printStackTrace();
         }
-        System.out.println(liste.toString());
+        
+        if(liste.get(0) == null){
+            System.out.println("Il n'y a pas de borne disponible pour ce créneau");
+        }
+        
         return liste;
     }
 
