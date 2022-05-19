@@ -14,6 +14,10 @@ import com.google.protobuf.Timestamp;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
+/**
+ * Changer les états des bornes (reservé, ...)
+ */
+
 public class Borne {
     static Dotenv dotenv = Dotenv.configure().load();
     private static Connection co = DatabaseConnection.dbco(dotenv.get("MYSQL_STRING"),dotenv.get("USER"), dotenv.get("PASSWORD"));
@@ -33,7 +37,6 @@ public class Borne {
             pstate.setInt(1, idBorne);
             pstate.execute();
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -59,7 +62,6 @@ public class Borne {
                     liste.add(rs.getInt(1));
                 }
             } catch (SQLException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         return liste;
@@ -77,7 +79,6 @@ public class Borne {
                 liste.add(rs.getInt(1));
             }
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         System.out.println(liste.toString());
@@ -106,7 +107,6 @@ public class Borne {
                 }
             }
         } catch (Exception e) {
-            //TODO: handle exception
         }
 
     }
