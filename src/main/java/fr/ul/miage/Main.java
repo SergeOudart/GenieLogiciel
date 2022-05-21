@@ -12,7 +12,7 @@ public class Main
     public static void main( String[] args ) throws ClassNotFoundException
     {
         Menu m = new Menu();
-        m.Demarrer();
+        m.demarrer();
        
 }
 }
