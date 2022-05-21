@@ -1,5 +1,6 @@
 package fr.ul.miage;
 import java.sql.*;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -88,29 +89,30 @@ public class Client {
                     }
                     break;
                 case 6:
-                System.out.println("Saisir un numéro d'immatriculation");
-                String num_immatriculation = sc.next();
-                System.out.println(idClient);
-                verifPlaque(num_immatriculation, idClient);
-                System.out.println("Saisir une date de début concernant la réservation");
-                String date = sc.next();
-                try {
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                    // java.util.Date parsedDate = dateFormat.parse(date);
-                    // Timestamp date_deb = new java.sql.Timestamp(parsedDate.getTime());
-                    Timestamp date_deb = new Timestamp((dateFormat.parse(date)).getTime());
-                    System.out.println("Saisir une heure de début");
-                    int heure_debut = sc.nextInt();
-                    System.out.println("Saisir une durée pour la réservation");
-                    int duree_reservation = sc.nextInt();
-                    r = Reservation.affecterReservation(idClient, date_deb,heure_debut, duree_reservation);
-                    System.out.println(r.toString());
+                    System.out.println("Saisir un numéro d'immatriculation");
+                    String num_immatriculation = sc.next();
+                    System.out.println(idClient);
+                    verifPlaque(num_immatriculation, idClient);
+                    System.out.println("Saisir une date de début concernant la réservation");
+                    String date = sc.next();
+                    try {
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                        // java.util.Date parsedDate = dateFormat.parse(date);
+                        // Timestamp date_deb = new java.sql.Timestamp(parsedDate.getTime());
+                        Timestamp date_deb = new Timestamp((dateFormat.parse(date)).getTime());
+                        System.out.println("Saisir une heure de début");
+                        int heure_debut = sc.nextInt();
+                        System.out.println("Saisir une durée pour la réservation");
+                        int duree_reservation = sc.nextInt();
+                        r = Reservation.affecterReservation(idClient, date_deb,heure_debut, duree_reservation);
+                        System.out.println(r.toString());
 
-                } catch (Exception e1) {
-                    e1.printStackTrace();
-                }
-                break;
-
+                    } catch (Exception e1) {
+                        // TODO Auto-generated catch block
+                        e1.printStackTrace();
+                    }
+                    
+                    break;
                 case 7:
                     System.out.println("Saisir l'id d'un client pour vérifier ses réservations");
                     int id_cl_reservation = sc.nextInt();
@@ -489,6 +491,7 @@ public class Client {
         int idVehicule = 0;
         boolean verifAssociation = false;
         boolean estLoue = false;
+        // int idClient = Menu.getClientIdByPlaque(plaque);
         try {
             String queryPlaqueExiste = "SELECT plaque,vehicule.idVehicule,estLoue FROM vehicule,client WHERE plaque = (?) AND vehicule.idVehicule = client.idVehicule";
             PreparedStatement ps = co.prepareStatement(queryPlaqueExiste);
@@ -515,12 +518,14 @@ public class Client {
                 } 
 
             }
-
-
+             
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+     
+    }
+    
 
     }
 
