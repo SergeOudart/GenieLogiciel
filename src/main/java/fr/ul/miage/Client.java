@@ -155,7 +155,13 @@ public class Client {
                     try {
                         Timestamp dateConvert = formatterDate(dateDeb);
                         contrat = Reservation.reservationPermanente(idClient, dateConvert, duree);
-                        System.out.println(contrat.toString());
+                        if(contrat != null){
+                            System.out.println(contrat.toString());
+
+                        }else{
+                            break;
+                        }
+                        
                     } catch (ParseException e) {
                         e.printStackTrace();
                     }
