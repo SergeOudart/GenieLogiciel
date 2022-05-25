@@ -2,9 +2,12 @@ package fr.ul.miage;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -20,9 +23,6 @@ public class Client {
         this.idClient = idClient;
     }
 
-
-
-
     private int idClient;
 
     public Client(){
@@ -36,21 +36,25 @@ public class Client {
 
     public void menu_client()
     {
+
+        /**
+         *  TODO Si un client ne se présente pas au début de son créneau réservé, la borne de recharge sera maintenue réservée pendant une "période d’attente"
+         */
+
         Scanner sc = new Scanner(System.in);
         Reservation r = new Reservation();
         List<Reservation> lr = new ArrayList<Reservation>();
         boolean quitter = false;
 
         while(!quitter) {
-            System.out.println("Menu client : Se déconnecter (3) Modifier des infos client (4) Supprimer un client (5) Réserver une borne (6) Verifier reservation (7) Bornes dispo (8) Quitter (8)");
+            System.out.println("Menu client : Se présenter à une borne (2) Se déconnecter (3) Modifier des infos client (4) Supprimer un client (5) Réserver une borne (6) Verifier reservation (7) Bornes dispo (8) Quitter (8)");
             int choice = sc.nextInt();
 
             switch (choice) {            
                 case 2:
-                    System.out.println("Numéro de plaque / numéro de réservation : \n");
-                    String identifiant = sc.next();
-
-                    // database.fetchPassword(identifiant);
+                    PresentationBorne presentation = new PresentationBorne(getIdClient());
+                    presentation.presenterBorne();
+                    
                     break;
 
                 default:
@@ -107,7 +111,6 @@ public class Client {
                     }
                     
                     break;
-
                 case 7:
                     System.out.println("Saisir l'id d'un client pour vérifier ses réservations");
                     int id_cl_reservation = sc.nextInt();
@@ -132,8 +135,16 @@ public class Client {
                     case 8:
                         quitter = true;
                     break;
+                    case 9:
+                    System.out.println("Saisir un numéro de réservation");
+                    int num = sc.nextInt();
+                    System.out.println("Saisir la durée de prolongation");
+                    int duree_pro = sc.nextInt();
+                    Reservation r2 = Reservation.prolongerReservation(num,duree_pro);
+
+
+                    break;
                 
-                    //System.out.println("Le client a été supprimé");
                 }
             }
         sc.close();
@@ -183,7 +194,6 @@ public class Client {
 		
 	}
 
-
     public boolean verifEntry(String pseudo, String mdp, String nom, String prenom, String num_tel, String num_carte, String mail, String plaque, String role) 
     {
         boolean verif = true;
@@ -198,9 +208,6 @@ public class Client {
 
         return verif;
     }
-
-
-	
 
     public void close(PreparedStatement requete, Connection co) throws SQLException {
 		if (requete != null) {
@@ -251,9 +258,20 @@ public class Client {
             e.printStackTrace();
         }
      
-
     }
-    
 
+        public static long compareTwoTimeStamps(java.sql.Timestamp currentTime, java.sql.Timestamp oldTime)
+        {
+            long milliseconds1 = oldTime.getTime();
+            long milliseconds2 = currentTime.getTime();
+
+            long diff = milliseconds2 - milliseconds1;
+            long diffSeconds = diff / 1000;
+            long diffMinutes = diff / (60 * 1000);
+            long diffHours = diff / (60 * 60 * 1000);
+            long diffDays = diff / (24 * 60 * 60 * 1000);
+
+            return diffMinutes;
+        }
 
 }
