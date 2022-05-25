@@ -19,20 +19,20 @@ public class AppTest
     @Test
     public void testPaiement()
     {
-        Client client = new Client();
-        assertTrue(client.paiement(2, 0, false) == 20);
-        assertTrue(client.paiement(2, 30, false) == 50);
-        assertTrue(client.paiement(2, 0, true) == 40);
+        PresentationBorne pres = new PresentationBorne(1);
+        assertTrue(pres.paiement(2, 0, false) == 20);
+        assertTrue(pres.paiement(2, 30, false) == 50);
+        assertTrue(pres.paiement(2, 0, true) == 40);
     }
 
     @Test
     public void dansPeriodeAttente()
     {
-        Client client = new Client();
-        assertTrue(client.dansPeriodeAttente(new Timestamp(System.currentTimeMillis())));
-        assertTrue(client.dansPeriodeAttente(new Timestamp(System.currentTimeMillis() - 30000)));
-        assertTrue(client.dansPeriodeAttente(new Timestamp(System.currentTimeMillis() + 30000)));
-        assertFalse(client.dansPeriodeAttente(new Timestamp(System.currentTimeMillis() + 910000)));
+        PresentationBorne pres = new PresentationBorne(1);
+        assertTrue(pres.dansPeriodeAttente(new Timestamp(System.currentTimeMillis())));
+        assertTrue(pres.dansPeriodeAttente(new Timestamp(System.currentTimeMillis() - 30000)));
+        assertTrue(pres.dansPeriodeAttente(new Timestamp(System.currentTimeMillis() + 30000)));
+        assertFalse(pres.dansPeriodeAttente(new Timestamp(System.currentTimeMillis() + 910000)));
     }
     
 }
