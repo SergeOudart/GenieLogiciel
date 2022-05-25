@@ -26,6 +26,118 @@ public class Client {
         this.idClient = idClient;
     }
 
+    public String getPseudo() {
+        return pseudo;
+    }
+
+    public void setPseudo(String pseudo) {
+        this.pseudo = pseudo;
+    }
+
+    public String getMdp() {
+        return mdp;
+    }
+
+    public void setMdp(String mdp) {
+        this.mdp = mdp;
+    }
+
+    public String getNom() {
+        return nom;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+
+    public int getNumTel() {
+        return numTel;
+    }
+
+    public void setNumTel(int numTel) {
+        this.numTel = numTel;
+    }
+
+    public int getNumCarte() {
+        return numCarte;
+    }
+
+    public void setNumCarte(int numCarte) {
+        this.numCarte = numCarte;
+    }
+
+    public String getMail() {
+        return mail;
+    }
+
+    public void setMail(String mail) {
+        this.mail = mail;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public int getIdVehicule() {
+        return idVehicule;
+    }
+
+    public void setIdVehicule(int idVehicule) {
+        this.idVehicule = idVehicule;
+    }
+
+    public int getNbReservationsPerma() {
+        return nbReservationsPerma;
+    }
+
+    public void setNbReservationsPerma(int nbReservationsPerma) {
+        this.nbReservationsPerma = nbReservationsPerma;
+    }
+
+    private String pseudo;
+    private String mdp;
+    public String getPrenom() {
+        return prenom;
+    }
+
+    public void setPrenom(String prenom) {
+        this.prenom = prenom;
+    }
+
+    private String nom;
+    private String prenom;
+    private int numTel;
+    private int numCarte;
+    private String mail;
+    private String role;
+    @Override
+    public String toString() {
+        return "Client [idClient=" + idClient + ", idVehicule=" + idVehicule + ", mail=" + mail + ", mdp=" + mdp
+                + ", nbReservationsPerma=" + nbReservationsPerma + ", nom=" + nom + ", numCarte=" + numCarte
+                + ", numTel=" + numTel + ", prenom=" + prenom + ", pseudo=" + pseudo + ", role=" + role + "]";
+    }
+
+    private int idVehicule;
+    private int nbReservationsPerma;
+
+
+    public Client(int idClient, String pseudo, String mdp, String nom, String prenom, int numTel, int numCarte, String mail, String role,
+        int idVehicule, int nbReservationsPerma) {
+        this.pseudo = pseudo;
+        this.mdp = mdp;
+        this.nom = nom;
+        this.numTel = numTel;
+        this.numCarte = numCarte;
+        this.mail = mail;
+        this.role = role;
+        this.idVehicule = idVehicule;
+        this.nbReservationsPerma = nbReservationsPerma;
+        this.idClient = idClient;
+    }
 
 
 
@@ -173,6 +285,10 @@ public class Client {
                 }
             }
         sc.close();
+    }
+
+    public void menu_exploitant(){
+
     }
 
     public Timestamp formatterDate(String date) throws ParseException{

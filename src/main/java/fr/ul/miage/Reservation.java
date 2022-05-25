@@ -320,11 +320,11 @@ public class Reservation{
 
     }
 
-    public static boolean verifDateExpiration(Timestamp timestamp){
+    public static boolean verifDateExpiration(Timestamp dateFin){
         Timestamp timestamp2 = new Timestamp(System.currentTimeMillis());
-        long dateFin = timestamp.getTime();
+        long dateFinTime = dateFin.getTime();
         long mtn = timestamp2.getTime();
-        long diff = mtn - dateFin;
+        long diff = mtn - dateFinTime;
         long diffMinutes = diff / (60*1000);
         if(diffMinutes < 30){
             return false;
