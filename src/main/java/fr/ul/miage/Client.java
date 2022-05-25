@@ -2,7 +2,10 @@ package fr.ul.miage;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+
+
 import java.time.LocalDate;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -85,6 +88,7 @@ public class Client {
                     }
                     break;
                 case 6:
+
                 System.out.println("Saisir un numéro d'immatriculation");
                 String num_immatriculation = sc.next();
                 System.out.println(idClient);
@@ -435,6 +439,7 @@ public class Client {
         int idVehicule = 0;
         boolean verifAssociation = false;
         boolean estLoue = false;
+
         try {
             String queryPlaqueExiste = "SELECT plaque,vehicule.idVehicule,estLoue FROM vehicule,client WHERE plaque = (?) AND vehicule.idVehicule = client.idVehicule";
             PreparedStatement ps = co.prepareStatement(queryPlaqueExiste);
@@ -462,10 +467,11 @@ public class Client {
 
             }
 
-
         } catch (Exception e) {
             e.printStackTrace();
         }
+     
+
 
 
     }
@@ -499,6 +505,7 @@ public class Client {
         }
         return contratExiste;
     }
+
 
     
 

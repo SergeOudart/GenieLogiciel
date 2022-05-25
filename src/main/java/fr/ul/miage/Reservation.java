@@ -145,7 +145,7 @@ public class Reservation{
 
 
     public static Reservation affecterReservation(int idClient,Timestamp date_deb,int heure_deb, int duree){
-        //Verifier si un contrat permanent existe avant d'affecter une réservation
+
         Reservation r = null;
         List<Integer> bornes_dispos = new ArrayList<Integer>();
         bornes_dispos.addAll(Borne.bornesDispo());
@@ -173,7 +173,9 @@ public class Reservation{
             pstate.setTimestamp(4, date_fin);
             pstate.setInt(5, duree);
             pstate.execute();
+
             int countLines = pstate.executeUpdate();        //TODO A vérifier
+
 
             if(countLines > 0){
                 System.out.println("a");
@@ -385,11 +387,26 @@ public class Reservation{
                 + idBorne + ", idClient=" + idClient + ", idReservation=" + idReservation + "]";
     }
 
- /*   public Timestamp convertToTimestampViaInstant(Date dateToConvert) {
-        return dateToConvert.toInstant()
-          .atZone(ZoneId.systemDefault())
-          .toLocalDate();
-    }*/
+    public boolean arriveeRetard(int idReservation){
+        String query = "UPDATE borne SET etat ='periode attente' WHERE borne.idBorne = reservation.idBorne and reservation.idReservation = (?)";
+        try {
+            PreparedStatement pstate = co.prepareStatement(query);
+            pstate.setInt(1, idReservation);
+            pstate.execute();
+            int countLines = pstate.executeUpdate();
+            if(countLines > 0){
+                System.out.println("Période d'attente de 15 minutes concernant votre réservation");
+            }    
+        } catch (Exception e) {
+            //TODO: handle exception
+        }  
+        return false;
+
+    }
+
+    
+
+
 
     
 }
