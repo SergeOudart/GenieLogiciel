@@ -5,14 +5,18 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import com.google.protobuf.Timestamp;
 
 import io.github.cdimascio.dotenv.Dotenv;
+
+/**
+ * Changer les états des bornes (reservé, ...)
+ */
 
 public class Borne {
     static Dotenv dotenv = Dotenv.configure().load();
@@ -33,7 +37,6 @@ public class Borne {
             pstate.setInt(1, idBorne);
             pstate.execute();
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -56,7 +59,6 @@ public class Borne {
                     liste.add(rs.getInt(1));
                 }
             } catch (SQLException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         return liste;
@@ -85,7 +87,7 @@ public class Borne {
                 liste.add(rs.getInt(1));
             }
         } catch (SQLException e) {
-            
+
             e.printStackTrace();
         }
         
@@ -93,6 +95,26 @@ public class Borne {
             System.out.println("Il n'y a pas de borne disponible pour ce créneau");
         }
         
+        return liste;
+    }
+
+    public static List<Integer> bornesDispoDebutFin(java.sql.Timestamp date_deb, int duree) {
+        List<Integer> liste = new ArrayList<Integer>();
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(date_deb.getTime());
+        cal.add(Calendar.HOUR, duree);
+        Timestamp date_fin = new Timestamp(cal.getTime().getTime());
+        String queryBorneDispo = "SELECT borne.idBorne FROM borne,reservation WHERE etat = 'disponible' AND (?) > reservation.date_fin";
+        try {
+            PreparedStatement pstate = co.prepareStatement(queryBorneDispo);
+            pstate.setTimestamp(1, date_deb);
+            ResultSet rs = pstate.executeQuery();
+            while(rs.next()) {
+                liste.add(rs.getInt("idBorne"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return liste;
     }
 
@@ -118,9 +140,30 @@ public class Borne {
                 }
             }
         } catch (Exception e) {
-            //TODO: handle exception
         }
 
+    }
+
+    public static void setOccupeeParId(int idBorne) {
+        String query = "UPDATE borne SET etat = 'occupe' WHERE idBorne = (?)";
+        try {
+            PreparedStatement pstate = co.prepareStatement(query);
+            pstate.setInt(1, idBorne);
+            pstate.execute();
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void setDispoParId(int idBorne) {
+        String query = "UPDATE borne SET etat = 'disponible' WHERE idBorne = (?)";
+        try {
+            PreparedStatement pstate = co.prepareStatement(query);
+            pstate.setInt(1, idBorne);
+            pstate.execute();
+        } catch(SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     

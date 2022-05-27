@@ -26,6 +26,7 @@ public class Client {
         this.idClient = idClient;
     }
 
+
     public String getPseudo() {
         return pseudo;
     }
@@ -141,6 +142,7 @@ public class Client {
 
 
 
+
     private int idClient;
 
     public Client(){
@@ -154,6 +156,11 @@ public class Client {
 
     public void menu_client()
     {
+
+        /**
+         *  TODO Si un client ne se présente pas au début de son créneau réservé, la borne de recharge sera maintenue réservée pendant une "période d’attente"
+         */
+
         Scanner sc = new Scanner(System.in);
         Reservation r = new Reservation();
         Contrat contrat = new Contrat();
@@ -166,7 +173,8 @@ public class Client {
 
             switch (choice) {            
                 case 2:
-                    presenterBorne();
+                    PresentationBorne presentation = new PresentationBorne(getIdClient());
+                    presentation.presenterBorne();
                     
                     break;
 
@@ -201,6 +209,7 @@ public class Client {
                     break;
                 case 6:
 
+
                 System.out.println("Saisir un numéro d'immatriculation");
                 String num_immatriculation = sc.next();
                 System.out.println(idClient);
@@ -224,6 +233,7 @@ public class Client {
                     e1.printStackTrace();
                 }
                 break;
+
 
                 case 7:
                     System.out.println("Saisir l'id d'un client pour vérifier ses réservations");
@@ -342,161 +352,6 @@ public class Client {
 		
 	}
 
-    public void presenterBorne() {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Avez vous un numéro de réservation ? (oui/non)");
-        String num_res_exist = sc.next();
-        int idClient = 0;
-        int idBorne = 0;
-        Timestamp date_deb = new Timestamp(System.currentTimeMillis());
-        Timestamp date_fin = new Timestamp(System.currentTimeMillis());
-        int duree = 0;
-        switch (num_res_exist) {
-            case "oui":
-            System.out.println("Entrez votre numéro de réservation :");
-            int num_res = sc.nextInt();
-            try {
-                PreparedStatement requete = co.prepareStatement("SELECT * from reservation where idReservation=(?)");
-                requete.setInt(1, num_res);
-                ResultSet rs = requete.executeQuery();
-
-                while (rs.next()) {
-                    idClient = rs.getInt("idClient");
-                    idBorne = rs.getInt("idBorne");
-                    date_deb = rs.getTimestamp("date_deb");
-                    date_fin = rs.getTimestamp("date_fin");
-                    duree = rs.getInt("duree");
-                }
-                Reservation reservation = new Reservation(num_res,idClient,idBorne,date_deb,date_fin,duree);
-                SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-                
-                /**
-                 * >= 0 --> A l'heure ou en avance
-                 * < 0 --> En retard
-                 */
-                if(date_deb.compareTo(Timestamp.valueOf(sdf1.format(timestamp))) >= 0) {
-                    System.out.println("Vous êtes à l'heure, rechargement du véhicule ...");
-                    reservation.changerBorneEtatReserveeParIdReservation(num_res);
-                    boolean fini = false;
-                    while(!fini) {
-                        System.out.println("Voulez vous arrêter le rechargement ? (oui)");
-                        String choix = sc.next();
-                        if (choix.equals("oui")) {
-                            fini = true;
-                        }
-                    }
-                    Timestamp heure_depart = new Timestamp(System.currentTimeMillis());
-                    heure_depart = Timestamp.valueOf(sdf1.format(heure_depart));
-                    //Timestamp heure_depart = getHeureDepart();                    /* TODO Pour tester les dépassement d'heures / pas supprimer*/
-                    finaliserRecharge(num_res, heure_depart,reservation);
-                    
-
-                    long time = heure_depart.getTime() - date_deb.getTime();
-                    long hours = TimeUnit.MILLISECONDS.toHours(time);
-
-                    long depass = heure_depart.getTime() - date_fin.getTime();
-                    long minutes_dep = TimeUnit.MILLISECONDS.toMinutes(depass);
-
-                    int prix = paiement(hours, minutes_dep, false);
-
-                    facturation(idClient, num_res, prix, heure_depart);
-
-                } else if(date_deb.compareTo(Timestamp.valueOf(sdf1.format(timestamp))) < 0) {
-                    System.out.println("Vous êtes en retard, ");
-                    /**
-                     * Gérer temps supplémentaire periode d'attente
-                     */
-                }
-
-            } catch (SQLException e) 
-
-
-            {
-            }
-                break;
-        
-            default:
-                break;
-        }
-    }
-
-    public Timestamp getHeureDepart() {
-        String query = "SELECT date_depart from reservation where idReservation=2";
-        Timestamp heure = new Timestamp(System.currentTimeMillis());
-        try {
-            Statement stmt = co.createStatement();
-            ResultSet rs= stmt.executeQuery(query);
-
-            while(rs.next()) {
-                heure = rs.getTimestamp("date_depart");
-            }
-
-        } catch(SQLException e) {
-
-        }
-        return heure;
-    }
-
-    public void arriverATemps() {
-        
-    }
-
-    public void finaliserRecharge(int idReservation, Timestamp date_depart, Reservation reservation) {
-        System.out.println("Rechargement terminé");
-        reservation.changerBorneEtatDispoParIdReservation(idReservation);
-        String query = "UPDATE reservation SET date_depart = (?) where idReservation=(?)";
-        try {
-            PreparedStatement requete = co.prepareStatement(query);
-            requete.setTimestamp(1, date_depart);
-            requete.setInt(2, idReservation);
-            requete.executeUpdate();     //A mute pour tester
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public int paiement(long heures, long depassement, boolean non_pres) {
-        System.out.println("Paiement en cours ...");
-        int prix = 0;
-        if (depassement <= 0) {
-            int frais = getFrais("frais");
-            prix = (int) heures * frais;
-        } if (depassement > 0) {
-            int frais = getFrais("frais");
-            int frais_depassement = getFrais("depassement");
-            prix = (int) ((heures * frais) + (depassement * frais_depassement)); 
-        }
-        
-        if (non_pres) {
-            int frais_non_pres = getFrais("non_pres");
-            prix = (int) heures * frais_non_pres;
-        }
-        
-        return prix;
-    }
-
-    public void facturation(int idClient, int idReservation, int prix, Timestamp date) {
-        String query = "INSERT INTO facture(idClient, idReservation, prix, date) values (?,?,?,?)";
-        try {
-            PreparedStatement stmt = co.prepareStatement(query);
-            stmt.setInt(1, idClient);
-            stmt.setInt(2, idReservation);
-            stmt.setInt(3, prix);
-            stmt.setTimestamp(4, date);
-            stmt.execute();
-        } catch(SQLException e) {
-
-        }
-
-        System.out.println("Votre facture : \n"
-        + "idClient : " + idClient + "\n"
-        + "Numéro de reservation : " + idReservation + "\n"
-        + "Prix : " + prix + " euros \n"
-        + "Date : " + date);
-    }
-
-
     public boolean verifEntry(String pseudo, String mdp, String nom, String prenom, String num_tel, String num_carte, String mail, String plaque, String role) 
     {
         boolean verif = true;
@@ -511,39 +366,6 @@ public class Client {
 
         return verif;
     }
-
-    public int getFrais(String choix) {
-        String query = "SELECT * from frais";
-        Statement stmt;
-        int frais = 0;
-        int frais_depassement = 0;
-        int frais_non_pres = 0;
-        try {
-            stmt = co.createStatement();
-            ResultSet rs = stmt.executeQuery(query);
-
-            while(rs.next()) {
-                frais = rs.getInt(1);
-                frais_depassement = rs.getInt(2);
-                frais_non_pres = rs.getInt(3);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        
-        if (choix.equals("frais")) {
-            return frais;
-        } else if(choix.equals("depassement")) {
-            return frais_depassement;
-        } else if (choix.equals("non_pres")) {
-            return frais_non_pres;
-        } else {
-            return 0;
-        }
-    }
-
-
-	
 
     public void close(PreparedStatement requete, Connection co) throws SQLException {
 		if (requete != null) {
@@ -594,23 +416,21 @@ public class Client {
         }
      
 
-
-
     }
 
         public static long compareTwoTimeStamps(java.sql.Timestamp currentTime, java.sql.Timestamp oldTime)
-    {
-        long milliseconds1 = oldTime.getTime();
-        long milliseconds2 = currentTime.getTime();
+        {
+            long milliseconds1 = oldTime.getTime();
+            long milliseconds2 = currentTime.getTime();
 
-        long diff = milliseconds2 - milliseconds1;
-        long diffSeconds = diff / 1000;
-        long diffMinutes = diff / (60 * 1000);
-        long diffHours = diff / (60 * 60 * 1000);
-        long diffDays = diff / (24 * 60 * 60 * 1000);
+            long diff = milliseconds2 - milliseconds1;
+            long diffSeconds = diff / 1000;
+            long diffMinutes = diff / (60 * 1000);
+            long diffHours = diff / (60 * 60 * 1000);
+            long diffDays = diff / (24 * 60 * 60 * 1000);
 
-        return diffMinutes;
-    }
+            return diffMinutes;
+        }
 
     public boolean verifContratClient(int idClient)
     {

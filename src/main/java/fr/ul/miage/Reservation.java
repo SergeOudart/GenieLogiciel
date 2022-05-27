@@ -172,7 +172,9 @@ public class Reservation{
             pstate.setInt(5, duree);
             pstate.execute();
 
-            int countLines = pstate.executeUpdate();        //TODO A vérifier
+          
+            int countLines = pstate.executeUpdate();
+
 
 
             if(countLines > 0){
