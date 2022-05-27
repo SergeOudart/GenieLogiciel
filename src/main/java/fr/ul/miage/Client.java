@@ -47,7 +47,7 @@ public class Client {
         boolean quitter = false;
 
         while(!quitter) {
-            System.out.println("Menu client : Se présenter à une borne (2) Se déconnecter (3) Modifier des infos client (4) Supprimer un client (5) Réserver une borne (6) Verifier reservation (7) Bornes dispo (8) Quitter (8)");
+            System.out.println("Menu client : Se présenter à une borne (2) Se déconnecter (3) Modifier des infos client (4) Supprimer un client (5) Réserver une borne (6) Verifier reservation (7) Bornes dispo (8) Quitter (8) Prolonger réservation (9) Ajouter plaque d'immatriculation (10)");
             int choice = sc.nextInt();
 
             switch (choice) {            
@@ -142,14 +142,62 @@ public class Client {
                     int duree_pro = sc.nextInt();
                     Reservation r2 = Reservation.prolongerReservation(num,duree_pro);
 
-
                     break;
+
+                    case 10:
+                    System.out.println("Entrez votre plaque d'immatriculation : ");
+                    String plaque = sc.next();
+                    System.out.println("Votre véhicule est il loué ? (0 = non/1 = oui)");
+                    int estLoue = sc.nextInt();
+                    System.out.println("Quelle est la marque de votre véhicule ? ");
+                    String marque = sc.next();
+                    insertVehicule(plaque,estLoue,marque);
                 
                 }
             }
         sc.close();
     }
 
+    public void insertVehicule(String plaque, int estLoue, String marque) {
+        String query = "INSERT INTO vehicule(marque,estLoue,plaque) values ((?),(?),(?))";
+        System.out.println(this.idClient);
+        int idVehicule = 0;
+        try {
+            PreparedStatement requete = co.prepareStatement(query);
+            requete.setString(1, plaque);
+            requete.setInt(2, estLoue);
+            requete.setString(3, marque);
+            requete.executeUpdate();
+            System.out.println("Changement effectué !");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        String getId = "SELECT idVehicule FROM vehicule WHERE plaque=(?)";
+
+        try {
+            PreparedStatement requete = co.prepareStatement(getId);
+            requete.setString(1, plaque);
+            ResultSet rs = requete.executeQuery();
+
+            while(rs.next()) {
+                idVehicule = rs.getInt(1);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        String queryUpdate = "UPDATE client set idVehicule = (?) WHERE idClient=(?)";
+
+        try {
+            PreparedStatement requete = co.prepareStatement(queryUpdate);
+            requete.setInt(1, idVehicule);
+            requete.setInt(2, this.idClient);
+            requete.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
     
     public void supprimerClient(int id) throws ClassNotFoundException {
 		try {

@@ -362,14 +362,14 @@ public class PresentationBorne {
         } catch (SQLException e) {
 
         }
-        String queryInsert = "INSERT INTO clientvehicule(idClient, idVehicule) values ((?), (?))";
+        String queryInsert = "INSERT INTO clientvehicule(idClient, idVehicule) values ((?),(?))";
         try {
             PreparedStatement pstate2 = co.prepareStatement(queryInsert);
             pstate2.setInt(1, idClient);
             pstate2.setInt(2, idVehicule);
             pstate2.execute();
         } catch (SQLException e) {
-
+            e.printStackTrace();
         }
     }
 
