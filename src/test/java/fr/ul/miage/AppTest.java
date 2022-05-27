@@ -56,12 +56,34 @@ public class AppTest
     
 
     @Test
-    public void testPaiement()
+    public void testPaiementPasDepassement()
     {
         PresentationBorne pres = new PresentationBorne(1);
         assertTrue(pres.paiement(2, 0, false) == 20);
+    }
+
+    @Test
+    public void testPaiementDepassement() {
+        PresentationBorne pres = new PresentationBorne(1);
         assertTrue(pres.paiement(2, 30, false) == 50);
+    }
+
+    @Test
+    public void testPaiementNonPres() {
+        PresentationBorne pres = new PresentationBorne(1);
         assertTrue(pres.paiement(2, 0, true) == 40);
+    }
+
+    @Test
+    public void pasDansPeriodeAttente() {
+        PresentationBorne pres = new PresentationBorne(1);
+        assertFalse(pres.dansPeriodeAttente(new Timestamp(System.currentTimeMillis() - 910000)));
+    }
+
+    @Test
+    public void entrePeriodeAttente() {
+        PresentationBorne pres = new PresentationBorne(1);
+        assertTrue(pres.dansPeriodeAttente(new Timestamp(System.currentTimeMillis() - 30000)));
     }
 
     @Test
@@ -69,9 +91,7 @@ public class AppTest
     {
         PresentationBorne pres = new PresentationBorne(1);
         assertTrue(pres.dansPeriodeAttente(new Timestamp(System.currentTimeMillis())));
-        assertTrue(pres.dansPeriodeAttente(new Timestamp(System.currentTimeMillis() - 30000)));
         assertTrue(pres.dansPeriodeAttente(new Timestamp(System.currentTimeMillis() + 30000)));
-        assertFalse(pres.dansPeriodeAttente(new Timestamp(System.currentTimeMillis() + 910000)));
     }
     
 }
