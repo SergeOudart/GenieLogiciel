@@ -122,20 +122,18 @@ public class Reservation{
         Timestamp dt_fin;
         int duree;
         List<Reservation> lr = new ArrayList<Reservation>();
-        
-        
         try {
             PreparedStatement pstate = co.prepareStatement(queryReservation);
             pstate.setInt(1, idClient);
             ResultSet rs =  pstate.executeQuery();    
             while(rs.next()){
                 //idBorne = rs.getInt(1);
-                lr.add(new Reservation(rs.getInt(1),rs.getInt(2),rs.getInt(3),rs.getTimestamp(4),rs.getTimestamp(5),rs.getInt(6)));
+                lr.add(new Reservation(rs.getInt(1),rs.getInt(2),rs.getInt(3),rs.getTimestamp(4),rs.getTimestamp(5), rs.getTimestamp(6),rs.getInt(7)));
             }
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            System.out.println("e");
+            
         }
 
         return lr;
