@@ -28,8 +28,8 @@ public class Reservation{
 
     private int idReservation;
     private int idClient;
-    private int idBorne;
-    private Timestamp date_deb;
+    private static int idBorne;
+    private static Timestamp date_deb;
     private Timestamp date_fin;
     private Timestamp date_depart;
 
@@ -122,20 +122,18 @@ public class Reservation{
         Timestamp dt_fin;
         int duree;
         List<Reservation> lr = new ArrayList<Reservation>();
-        
-        
         try {
             PreparedStatement pstate = co.prepareStatement(queryReservation);
             pstate.setInt(1, idClient);
             ResultSet rs =  pstate.executeQuery();    
             while(rs.next()){
                 //idBorne = rs.getInt(1);
-                lr.add(new Reservation(rs.getInt(1),rs.getInt(2),rs.getInt(3),rs.getTimestamp(4),rs.getTimestamp(5),rs.getInt(6)));
+                lr.add(new Reservation(rs.getInt(1),rs.getInt(2),rs.getInt(3),rs.getTimestamp(4),rs.getTimestamp(5), rs.getTimestamp(6),rs.getInt(7)));
             }
         } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            System.out.println("e");
+            
         }
 
         return lr;
@@ -145,6 +143,7 @@ public class Reservation{
 
 
     public static Reservation affecterReservation(int idClient,Timestamp date_deb,int heure_deb, int duree){
+
         Reservation r = null;
         List<Integer> bornes_dispos = new ArrayList<Integer>();
         bornes_dispos.addAll(Borne.bornesDispo());
@@ -172,8 +171,11 @@ public class Reservation{
             pstate.setTimestamp(4, date_fin);
             pstate.setInt(5, duree);
             pstate.execute();
+
           
             int countLines = pstate.executeUpdate();
+
+
 
             if(countLines > 0){
                 System.out.println("a");
@@ -193,11 +195,12 @@ public class Reservation{
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        changerBorneEtatReserveeParIdReservation(idReservation);
         return r;
     }
 
-    public void changerBorneEtatReserveeParIdReservation(int idReservation) {
-        String query = "UPDATE borne,reservation SET borne.etat='reservee' WHERE borne.idBorne = reservation.idBorne AND reservation.idReservation=(?)";
+    public static void changerBorneEtatReserveeParIdReservation(int idReservation) {
+        String query = "UPDATE borne,reservation SET borne.etat='occupee' WHERE borne.idBorne = reservation.idBorne AND reservation.idReservation=(?)";
         try {
             PreparedStatement requete = co.prepareStatement(query);
             requete.setInt(1, idReservation);
@@ -316,6 +319,119 @@ public class Reservation{
         return r;
 
     }
+
+    public static boolean verifDateExpiration(Timestamp dateFin){
+        Timestamp timestamp2 = new Timestamp(System.currentTimeMillis());
+        long dateFinTime = dateFin.getTime();
+        long mtn = timestamp2.getTime();
+        long diff = mtn - dateFinTime;
+        long diffMinutes = diff / (60*1000);
+        if(diffMinutes < 30){
+            return false;
+        }
+        return true;
+    }
+
+
+    public static Contrat reservationPermanente(int idClient,Timestamp date_debut,int duree){
+        int nbReservationsPerma = checkReservationPerma(idClient);
+        Contrat contrat = null;
+        if(nbReservationsPerma>=3){
+            System.out.println("Vous ne pouvez pas avoir plus de 3 réservations permanente");
+        }else{
+            List<Integer> bornes = new ArrayList<Integer>();
+            bornes.addAll(Borne.bornesDispoIntervalle(date_debut));
+            // List<Integer> bornesDispo = Borne.bornesDispoIntervalle(date_debut);
+            System.out.println(bornes);
+            
+            int idContrat = 0;
+            Calendar cal = Calendar.getInstance();
+            cal.setTimeInMillis(date_debut.getTime());
+            cal.add(Calendar.DAY_OF_MONTH,30);
+            int affecterBorne = 0;
+            if(!bornes.isEmpty()){
+                System.out.println("test");
+                affecterBorne = bornes.get(0);
+                Timestamp date_fin = new Timestamp(cal.getTime().getTime());
+            String queryReservation = "INSERT INTO contrat (idClient,idBorne,dateDebut,dateFin,duree) VALUES (?,?,?,?,?)";
+            try {
+                PreparedStatement pstate = co.prepareStatement(queryReservation);
+                pstate.setInt(1, idClient);
+                pstate.setInt(2, affecterBorne);
+                pstate.setTimestamp(3, date_debut);
+                pstate.setTimestamp(4, date_fin);
+                pstate.setInt(5, duree);
+                pstate.execute();
+            } catch (Exception e) {
+                
+            }
+            String queryIdContrat = "SELECT idContrat FROM contrat WHERE idClient = (?)";
+            try {
+                PreparedStatement pstate = co.prepareStatement(queryIdContrat);
+                pstate.setInt(1, idClient);
+                ResultSet rs = pstate.executeQuery();
+                if(rs.next()){
+                    idContrat = rs.getInt(1);
+                    
+                }
+            contrat = new Contrat(idContrat, idClient, affecterBorne, date_debut, date_fin, duree);
+            } catch (Exception e) {
+                
+            }
+            }else{
+                System.out.println("Pas de borne disponible pour ce créneau");
+            }
+
+            //Update le nombre de réservations permanente du client
+            String updateNbReservations = "UPDATE client SET nbReservationsPerma = (?) WHERE idClient = (?) ";
+            try {
+                PreparedStatement pstate = co.prepareStatement(updateNbReservations);
+                int newNumber = nbReservationsPerma + 1;
+                pstate.setInt(1, newNumber);
+                pstate.setInt(2, idClient);
+                pstate.execute();
+            } catch (Exception e) {
+                //TODO: handle exception
+            }
+            setEtatReserveeByContrat(idContrat);
+
+        }
+       
+        
+        return contrat;
+    }
+
+    public static int checkReservationPerma(int idClient){
+        String queryCheck = "SELECT nbReservationsPerma FROM client WHERE idClient = (?)";
+        int nbReservations = 0;
+        try {
+            PreparedStatement pstate = co.prepareStatement(queryCheck);
+            pstate.setInt(1, idClient);
+            ResultSet rs = pstate.executeQuery();
+            if(rs.next()){
+                nbReservations = rs.getInt(1);
+            }
+            
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+
+        return nbReservations;
+
+    }
+
+    public static void setEtatReserveeByContrat(int idContrat){
+        String queryEtat = "UPDATE borne,contrat SET borne.etat='reservee' WHERE borne.idBorne = contrat.idBorne AND contrat.idContrat =(?)";
+        try {
+            PreparedStatement pstate = co.prepareStatement(queryEtat);
+            pstate.setInt(1, idContrat);
+            pstate.execute();
+        } catch (Exception e) {
+           
+        }
+    }
+
+    
 
     @Override
     public String toString() {

@@ -10,6 +10,7 @@ import java.util.Scanner;
 
 import javax.sound.sampled.SourceDataLine;
 
+import fr.Exploitant;
 import io.github.cdimascio.dotenv.Dotenv;
 
 public class Menu {
@@ -20,7 +21,7 @@ public class Menu {
     public void demarrer(){
 
         Scanner sc = new Scanner(System.in);
-		System.out.println("Choisissez une option : Inscription (1) Connexion (2)");
+		System.out.println("Choisissez une option : Inscription (1) Connexion (2) Connexion exploitant (3)");
         int nb1 = sc.nextInt();
 
         /**
@@ -78,6 +79,21 @@ public class Menu {
                     
                 }
             break;
+                case 3:
+                    System.out.println("Veuillez saisir votre pseudo");
+                    String pseudo = sc.next();
+                    System.out.println("Veuillez saisir votre mot de passe");
+                    String mdp = sc.next();
+                    boolean connectExploitant = connexionExploitant(pseudo, mdp);
+                    
+                    if(connectExploitant){
+                        int idExploitant = Exploitant.getExploitantIdByPseudo(pseudo);
+                        Exploitant ex = new Exploitant(idExploitant);
+                        ex.menu_exploitant();
+                        //client.menu_client();
+                    }
+            
+                break;
 
         } 
     }
@@ -98,17 +114,13 @@ public class Menu {
             String num_carte = sc.next();
             System.out.println("Saisir un mail");
             String mail = sc.next();
-            System.out.println("Saisir un numéro de plaque (non obligatoire)");
-            String plaque = sc.next();
             System.out.println("Choisissez votre role (administrateur, user, exploitant)");
             String role = sc.next();
-            if(plaque.isEmpty()){
-                plaque = "";
-            }
+
             //database.addNewClient(pseudo,mdp,mail,plaque);
            try{
-            if (verifEntry(pseudo, mdp, nom, prenom, num_tel, num_carte, mail, plaque)) {
-                ajoutClient(pseudo, protect_mdp,nom,prenom,num_tel,num_carte, mail, plaque, role);
+            if (verifEntry(pseudo, mdp, nom, prenom, num_tel, num_carte, mail)) {
+                ajoutClient(pseudo, protect_mdp,nom,prenom,num_tel,num_carte, mail, role);
                 System.out.println("Votre compte a bien été créé");
             } else 
             {
@@ -198,11 +210,50 @@ public class Menu {
         }
     }
 
+    public boolean connexionExploitant(String pseudo, String mdp){
+        String query = "SELECT idClient,mdp,role FROM client WHERE pseudo =(?)";
+        int idExploitant = 0;
+        String checkMdp = "";
+        String role= "";
+        try {
+            PreparedStatement pstate = co.prepareStatement(query);
+            pstate.setString(1,pseudo);
+            ResultSet rs = pstate.executeQuery();
+            if(rs.next()){
+                idExploitant = rs.getInt(1);
+                checkMdp = rs.getString(2);
+                role = rs.getString(3);
+            }
+        } catch (Exception e) {
+            //TODO: handle exception
+        }
+        System.out.println(pseudo);
+        System.out.println(mdp);
+        System.out.println(idExploitant);
+        System.out.println(role);
+        System.out.println(checkMdp);
+        if(checkMdp.equals(mdp) && role.equals("exploitant")){
+            return true;
+        }else{
+            System.out.println("Veuillez saisir des identifiants valides");
+            return false;
+        }
+    }
+
+    public boolean checkPassword(String str1, String str2){
+        if(str1.equals(str2)){
+            return true;
+        }else{
+            return false;
+        }
+
+    }
 
 
-    public void ajoutClient(String pseudo,String mdp,String nom, String prenom, String num_tel, String num_carte, String mail, String plaque, String role) throws ClassNotFoundException{
+
+    public void ajoutClient(String pseudo,String mdp,String nom, String prenom, String num_tel, String num_carte, String mail, String role) throws ClassNotFoundException{
         try{
-            String queryClient = "INSERT INTO Client (pseudo,mdp,nom,prenom,num_tel,num_carte,mail,plaque,role) VALUES (?,?,?,?,?,?,?,?,?)";
+            String queryClient = "INSERT INTO Client (pseudo,mdp,nom,prenom,num_tel,num_carte,mail,role) VALUES (?,?,?,?,?,?,?,?)";
             PreparedStatement pstate = co.prepareStatement(queryClient);
             pstate.setString(1, pseudo);
             pstate.setString(2, mdp);
@@ -211,8 +262,7 @@ public class Menu {
             pstate.setString(5, num_tel);
             pstate.setString(6, num_carte);
             pstate.setString(7, mail);
-            pstate.setString(8, plaque);
-            pstate.setString(9, role);
+            pstate.setString(8, role);
             pstate.execute();
             close(pstate,co);
 
@@ -231,7 +281,7 @@ public class Menu {
 		}
 	}
 
-    public boolean verifEntry(String pseudo, String mdp, String nom, String prenom, String num_tel, String num_carte, String mail, String plaque) 
+    public boolean verifEntry(String pseudo, String mdp, String nom, String prenom, String num_tel, String num_carte, String mail) 
     {
         boolean verif = true;
 
@@ -239,9 +289,7 @@ public class Menu {
         && prenom.matches("[A-Za-z]+") 
         && num_tel.matches("[0-9]+") 
         && num_carte.matches("[0-9]+")
-        && mail.matches("^(.+)@(.+)$")
-        && plaque.matches("[0-9]*");
-
+        && mail.matches("^(.+)@(.+)$");
         return verif;
     }
 
