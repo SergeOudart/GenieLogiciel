@@ -110,7 +110,7 @@ public class PresentationBorne {
                         long time = date_depart.getTime() - date_deb.getTime();
                         long hours = TimeUnit.MILLISECONDS.toHours(time);
                         int prix = paiement(hours, 0, false);
-                        facturationSansReservation(idClient, prix, date_depart);        //TODO facture à 0 euros problème
+                        facturationSansReservation(idClient, prix, date_depart);
                         dropAssocTemporaire(idClient);
                     }
                 }
@@ -132,7 +132,7 @@ public class PresentationBorne {
          * >= 0 --> A l'heure ou en avance
          * < 0 --> En retard
          */
-        if(date_deb.compareTo(Timestamp.valueOf(sdf1.format(timestamp))) >= 0) { 
+        if(date_deb.compareTo(Timestamp.valueOf(sdf1.format(timestamp))) >= 0 && bonneHeure(date_deb)) { 
             System.out.println("Vous êtes à l'heure, rechargement du véhicule ...");
             reservation.changerBorneEtatReserveeParIdReservation(num_res);
             boolean fini = false;
@@ -198,21 +198,34 @@ public class PresentationBorne {
                     long time = date_depart.getTime() - date_deb.getTime();
                     long hours = TimeUnit.MILLISECONDS.toHours(time);
                     int prix = paiement(hours, 0, false);
-                    facturationSansReservation(idClient, prix, date_depart);        //TODO facture à 0 euros problème
+                    facturationSansReservation(idClient, prix, date_depart);        
                 }
             }
         }
     }
 
+    public boolean bonneHeure(Timestamp date_deb) {
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        long time = (date_deb.getTime() - now.getTime())/(1000*60);
+
+        System.out.println(time);
+        
+        if (time > 15) {
+            System.out.println("Vous arrivez trop tôt, venez au moins 15 minutes avant le début de la réservation");
+            return false;
+        } else {
+            return true;
+        }
+    }
+
     public void arriverATemps(int num_res, Reservation reservation, Timestamp date_deb, Timestamp date_fin, SimpleDateFormat sdf1) {
         Timestamp heure_depart = new Timestamp(System.currentTimeMillis());
-        heure_depart = Timestamp.valueOf(sdf1.format(heure_depart));
-        //Timestamp heure_depart = getHeureDepart();                    /* TODO Pour tester les dépassement d'heures / pas supprimer*/
+        heure_depart = Timestamp.valueOf(sdf1.format(heure_depart));           
         finaliserRecharge(num_res, heure_depart,reservation);
         
 
         long time = heure_depart.getTime() - date_deb.getTime();
-        long hours = TimeUnit.MILLISECONDS.toHours(time);
+        long hours = TimeUnit.MILLISECONDS.toMinutes(time);
 
         long depass = heure_depart.getTime() - date_fin.getTime();
         long minutes_dep = TimeUnit.MILLISECONDS.toMinutes(depass);
@@ -230,7 +243,7 @@ public class PresentationBorne {
             PreparedStatement requete = co.prepareStatement(query);
             requete.setTimestamp(1, date_depart);
             requete.setInt(2, idReservation);
-            requete.executeUpdate();     //A mute pour tester
+            requete.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -242,10 +255,17 @@ public class PresentationBorne {
         if (depassement <= 0) {
             int frais = getFrais("frais");
             prix = (int) heures * frais;
+            if (heures < 60) {
+                prix = frais;
+            } else {
+                int heuresTotale = (int) heures/60;
+                prix = heuresTotale * frais;
+            }
         } if (depassement > 0) {
             int frais = getFrais("frais");
+            int heuresTotale = (int) heures/60;
             int frais_depassement = getFrais("depassement");
-            prix = (int) ((heures * frais) + (depassement * frais_depassement)); 
+            prix = (int) ((heuresTotale * frais) + (depassement * frais_depassement)); 
         }
         
         if (non_pres) {
@@ -329,23 +349,6 @@ public class PresentationBorne {
         } catch(SQLException e) {
 
         }
-    }
-
-    public Timestamp getHeureDepart() {
-        String query = "SELECT date_depart from reservation where idReservation=2";
-        Timestamp heure = new Timestamp(System.currentTimeMillis());
-        try {
-            Statement stmt = co.createStatement();
-            ResultSet rs= stmt.executeQuery(query);
-
-            while(rs.next()) {
-                heure = rs.getTimestamp("date_depart");
-            }
-
-        } catch(SQLException e) {
-
-        }
-        return heure;
     }
 
     public void assocTemporaire(int idClient, String plaque) {

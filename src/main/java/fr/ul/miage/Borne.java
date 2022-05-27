@@ -91,7 +91,7 @@ public class Borne {
             e.printStackTrace();
         }
         
-        if(liste.get(0) == null){
+        if(liste.isEmpty()){
             System.out.println("Il n'y a pas de borne disponible pour ce créneau");
         }
         

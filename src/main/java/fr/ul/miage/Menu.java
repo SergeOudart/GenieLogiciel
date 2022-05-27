@@ -24,9 +24,6 @@ public class Menu {
 		System.out.println("Choisissez une option : Inscription (1) Connexion (2) Connexion exploitant (3)");
         int nb1 = sc.nextInt();
 
-        /**
-         * Essayer de boucler sur inscription
-         */
         switch(nb1) {
             case 1:
                 inscription(sc);
@@ -38,7 +35,7 @@ public class Menu {
             int idReservation = 0;
             int idClient = 0;
             while(!result) {
-                System.out.println("Voulez vous vous connecter avec votre numéro de réservation (1) ou votre plaque d'imatriculation (2)");
+                System.out.println("Voulez vous vous connecter avec votre numéro de réservation (1) ou votre plaque d'imatriculation (2) ou votre pseudo (3)");
                 String choice = sc.nextLine();
                 switch (choice) {
                     case "1":
@@ -50,7 +47,6 @@ public class Menu {
                         result = connexionFromReservation(num_res, password);
                         if(result){
                             idClient = getClientIdByReservation(num_res);
-
                         }
                       
                         break;
@@ -65,6 +61,17 @@ public class Menu {
                             idClient = getClientIdByPlaque(plaqueClient);
                         }
                         
+                        break;
+
+                    case "3":
+                        System.out.println("Veuillez entrer votre pseudo :");
+                        String pseudo = sc.next();
+                        System.out.println("Veuillez entrer votre mot de passe :");
+                        password = sc.next();
+                        result = connexionFromPseudo(pseudo, password);
+                        if(result){
+                            idClient = getClientIdByPseudo(pseudo);
+                        }
                         break;
                     default:
                         break;
@@ -227,15 +234,34 @@ public class Menu {
         } catch (Exception e) {
             //TODO: handle exception
         }
-        System.out.println(pseudo);
-        System.out.println(mdp);
-        System.out.println(idExploitant);
-        System.out.println(role);
-        System.out.println(checkMdp);
         if(checkMdp.equals(mdp) && role.equals("exploitant")){
             return true;
         }else{
             System.out.println("Veuillez saisir des identifiants valides");
+            return false;
+        }
+    }
+
+    public boolean connexionFromPseudo(String pseudo, String password) {
+        String query = "SELECT mdp,role FROM client WHERE pseudo=(?)";
+        String mdp = "";
+        String role = "";
+
+        try {
+            PreparedStatement pstate = co.prepareStatement(query);
+            pstate.setString(1, pseudo);
+            ResultSet rs = pstate.executeQuery();
+            if (rs.next()) {
+                mdp = rs.getString(1);
+                role = rs.getString(2);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if(mdp.equals(password) && role.equals("user")){
+            return true;
+        } else {
+            System.out.println("Veuillez entrer des indentifiants valides");
             return false;
         }
     }
@@ -299,6 +325,23 @@ public class Menu {
             String queryClient = "SELECT idClient FROM client,vehicule where client.idVehicule = vehicule.idVehicule AND vehicule.plaque=(?)";
             PreparedStatement pstate = co.prepareStatement(queryClient);
             pstate.setString(1, plaque);
+            ResultSet rs = pstate.executeQuery();
+            if(rs.next()){
+                id = rs.getInt(1);
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return id;
+    }
+
+    public int getClientIdByPseudo(String pseudo){
+        int id = 0;
+        try {
+            String queryClient = "SELECT idClient FROM client where pseudo=(?)";
+            PreparedStatement pstate = co.prepareStatement(queryClient);
+            pstate.setString(1, pseudo);
             ResultSet rs = pstate.executeQuery();
             if(rs.next()){
                 id = rs.getInt(1);

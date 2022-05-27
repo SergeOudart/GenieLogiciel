@@ -141,8 +141,6 @@ public class Client {
     }
 
 
-
-
     private int idClient;
 
     public Client(){
@@ -157,10 +155,6 @@ public class Client {
     public void menu_client()
     {
 
-        /**
-         *  TODO Si un client ne se présente pas au début de son créneau réservé, la borne de recharge sera maintenue réservée pendant une "période d’attente"
-         */
-
         Scanner sc = new Scanner(System.in);
         Reservation r = new Reservation();
         Contrat contrat = new Contrat();
@@ -168,7 +162,7 @@ public class Client {
         boolean quitter = false;
 
         while(!quitter) {
-            System.out.println("Menu client : Se présenter à une borne (2) Se déconnecter (3) Modifier des infos client (4) Supprimer un client (5) Réserver une borne (6) Verifier reservation (7) Bornes dispo (8) Quitter (8) Prolonger réservation (9) Ajouter plaque d'immatriculation (10)");
+            System.out.println("Menu client : Se présenter à une borne (2) Se déconnecter (3) Modifier des infos client (4) Supprimer un client (5) Réserver une borne (6) Verifier reservation (7) Quitter (8) Prolonger réservation (9) Effectuer une réservation permanente (10) Ajouter plaque d'immatriculation (11)");
             int choice = sc.nextInt();
 
             switch (choice) {            
@@ -268,15 +262,6 @@ public class Client {
 
                     break;
 
-                    case 11:
-                    System.out.println("Entrez votre plaque d'immatriculation : ");
-                    String plaque = sc.next();
-                    System.out.println("Votre véhicule est il loué ? (0 = non/1 = oui)");
-                    int estLoue = sc.nextInt();
-                    System.out.println("Quelle est la marque de votre véhicule ? ");
-                    String marque = sc.next();
-                    insertVehicule(plaque,estLoue,marque);
-
                     case 10:
                     System.out.println("Saisir une date de début pour votre réservation");
                     String dateDeb = sc.next();
@@ -297,9 +282,17 @@ public class Client {
                         e.printStackTrace();
                     }
                     
-                    
-
                     break;
+
+                    case 11:
+                        System.out.println("Entrez votre plaque d'immatriculation : ");
+                        String plaque = sc.next();
+                        System.out.println("Votre véhicule est il loué ? (0 = non/1 = oui)");
+                        int estLoue = sc.nextInt();
+                        System.out.println("Quelle est la marque de votre véhicule ? ");
+                        String marque = sc.next();
+                        insertVehicule(plaque,estLoue,marque);
+                        break;
                 
                 }
             }
@@ -312,14 +305,21 @@ public class Client {
         int idVehicule = 0;
         try {
             PreparedStatement requete = co.prepareStatement(query);
-            requete.setString(1, plaque);
+            requete.setString(1, marque);
             requete.setInt(2, estLoue);
-            requete.setString(3, marque);
+            requete.setString(3, plaque);
             requete.executeUpdate();
             System.out.println("Changement effectué !");
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        try {
+            PreparedStatement foreignKeyChecks = co.prepareStatement("SET foreign_key_checks = 0");
+            foreignKeyChecks.execute();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         String getId = "SELECT idVehicule FROM vehicule WHERE plaque=(?)";
 
         try {
@@ -347,10 +347,6 @@ public class Client {
         }
     }
   
-    public void menu_exploitant(){
-
-    }
-
     public Timestamp formatterDate(String date) throws ParseException{
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Timestamp dateFormatee = new Timestamp((dateFormat.parse(date)).getTime());

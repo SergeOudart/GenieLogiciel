@@ -170,7 +170,6 @@ public class Reservation{
             pstate.setTimestamp(3, date_deb_convertie);
             pstate.setTimestamp(4, date_fin);
             pstate.setInt(5, duree);
-            pstate.execute();
 
           
             int countLines = pstate.executeUpdate();
@@ -238,11 +237,11 @@ public class Reservation{
             deb = timestamp.getTime();
             long dateFin = timestamp2.getTime();
             long mtn = timestamp.getTime(); 
-            long diff = mtn - dateFin;
+            long diff = dateFin - mtn;
             long diffMinutes = diff / (60*1000);
             // diff_timestamp = TimeUnit.MILLISECONDS.toMinutes(deb - fin);
             System.out.println(diffMinutes);
-            if(diffMinutes < 30){
+            if(diffMinutes > 30){
                 return true;
             }else{
                 System.out.println("Impossible de prolonger la réservation");
