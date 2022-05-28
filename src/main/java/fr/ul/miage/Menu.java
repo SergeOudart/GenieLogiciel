@@ -6,8 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
 
-
-import fr.Exploitant;
 import io.github.cdimascio.dotenv.Dotenv;
 
 public class Menu {
