@@ -4,13 +4,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 
-import java.time.LocalDate;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -198,7 +195,7 @@ public class Client {
                         supprimerClient(id_client);
 
                     }catch (Exception e){
-                        e.printStackTrace();
+                        System.out.println("Impossible de supprimer le client");
                     }
                     break;
                 case 6:
@@ -223,8 +220,7 @@ public class Client {
                     System.out.println(r.toString());
 
                 } catch (Exception e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
+                    System.out.println("Impossible d'affecter la réservation, veuillez reessayer plus tard");
                 }
                 break;
 
@@ -244,7 +240,7 @@ public class Client {
                         
                         
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        System.out.println("Impossible de récupérer les réservations");
                     }
 
                     break;
@@ -279,7 +275,7 @@ public class Client {
                         }
                         
                     } catch (ParseException e) {
-                        e.printStackTrace();
+                        System.out.println("Impossible d'ajouter la réservation permanente");
                     }
                     
                     break;
@@ -311,13 +307,13 @@ public class Client {
             requete.executeUpdate();
             System.out.println("Changement effectué !");
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Impossible d'insérer le nouveau véhicule");
         }
         try {
             PreparedStatement foreignKeyChecks = co.prepareStatement("SET foreign_key_checks = 0");
             foreignKeyChecks.execute();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Erreur dans le lien entre le véhicule et le client");
         }
 
         String getId = "SELECT idVehicule FROM vehicule WHERE plaque=(?)";
@@ -332,7 +328,7 @@ public class Client {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Impossible de trouver le véhicule");
         }
 
         String queryUpdate = "UPDATE client set idVehicule = (?) WHERE idClient=(?)";
@@ -343,7 +339,7 @@ public class Client {
             requete.setInt(2, this.idClient);
             requete.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Impossible de mettre à jour votre véhicule");
         }
     }
   
@@ -363,12 +359,10 @@ public class Client {
 			PreparedStatement requete = co.prepareStatement("DELETE from Client where idClient=(?)");
 			requete.setInt(1, id);
             requete.execute();
-			// int nb = requete.executeUpdate();
 			close(requete, co);
 		}
 		catch(SQLException sqle) {
-            sqle.printStackTrace();
-				
+            System.out.println("Impossible de supprimer le client");				
 		}
 	}
 
@@ -458,7 +452,7 @@ public class Client {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Impossible de récupérer les informations");
         }
      
 
@@ -470,10 +464,7 @@ public class Client {
             long milliseconds2 = currentTime.getTime();
 
             long diff = milliseconds2 - milliseconds1;
-            long diffSeconds = diff / 1000;
             long diffMinutes = diff / (60 * 1000);
-            long diffHours = diff / (60 * 60 * 1000);
-            long diffDays = diff / (24 * 60 * 60 * 1000);
 
             return diffMinutes;
         }
@@ -489,7 +480,7 @@ public class Client {
                 contratExiste = true;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Impossible de trouver un contrat");
         }
         return contratExiste;
     }

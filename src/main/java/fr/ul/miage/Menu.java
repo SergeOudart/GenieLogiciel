@@ -1,14 +1,11 @@
 package fr.ul.miage;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Scanner;
 
-import javax.sound.sampled.SourceDataLine;
 
 import fr.Exploitant;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -78,12 +75,8 @@ public class Menu {
                 }
             }
                 if(result) {
-                    boolean menu = false;
                     Client client = new Client(idClient); 
-                   // client.setIdClient();
-                   System.out.println(client.getIdClient());
                     client.menu_client();
-                    
                 }
             break;
                 case 3:
@@ -124,7 +117,6 @@ public class Menu {
             System.out.println("Choisissez votre role (administrateur, user, exploitant)");
             String role = sc.next();
 
-            //database.addNewClient(pseudo,mdp,mail,plaque);
            try{
             if (verifEntry(pseudo, mdp, nom, prenom, num_tel, num_carte, mail)) {
                 ajoutClient(pseudo, protect_mdp,nom,prenom,num_tel,num_carte, mail, role);
@@ -134,15 +126,8 @@ public class Menu {
                 System.out.println("Les identifiants passés ne respectent pas le bon format");
             }
            }catch(ClassNotFoundException e){
-               e.printStackTrace();
+               System.out.println("Impossible d'ajouter le client");
            }
-    }
-
-    public boolean connexion(Scanner sc) {
-        String password = "";
-        boolean a=false;
-        return a;
-    
     }
 
     public boolean connexionFromPlaque(String plaque, String password) {
@@ -160,7 +145,7 @@ public class Menu {
             }
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Impossible de trouver cette plaque");
         }
 
         if (passwordCompare.equals(password)) {
@@ -188,7 +173,7 @@ public class Menu {
             }
             System.out.println(idClient);
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Impossible de trouver un client pour cette réservation");
         }
             
         try {
@@ -202,7 +187,7 @@ public class Menu {
             }
             
         } catch (Exception e) {
-            //TODO: handle exception
+            System.out.println("Impossible de récupérer le mot de passe ");
         }
                 
 
@@ -232,7 +217,7 @@ public class Menu {
                 role = rs.getString(3);
             }
         } catch (Exception e) {
-            //TODO: handle exception
+            System.out.println("Impossible de récupérer l'xploitant");
         }
         if(checkMdp.equals(mdp) && role.equals("exploitant")){
             return true;
@@ -256,7 +241,7 @@ public class Menu {
                 role = rs.getString(2);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Impossible de trouver un client pour ces identifiants");
         }
         if(mdp.equals(password) && role.equals("user")){
             return true;
@@ -293,7 +278,7 @@ public class Menu {
             close(pstate,co);
 
         }catch(SQLException e){
-            e.printStackTrace();
+            System.out.println("Impossible d'ajouter le client");
         }
         
     }
@@ -331,7 +316,7 @@ public class Menu {
             }
             
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Impossible de récupérer un client avec cette plaque");
         }
         return id;
     }
@@ -348,7 +333,7 @@ public class Menu {
             }
             
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Impossible de récupérer un client avec ce pseudo");
         }
         return id;
     }
@@ -365,7 +350,7 @@ public class Menu {
             }
             
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Impossible de récupérer un client avec cette réservation");
         }
         return id;
     }

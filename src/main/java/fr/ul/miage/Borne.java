@@ -5,8 +5,6 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -37,7 +35,7 @@ public class Borne {
             pstate.setInt(1, idBorne);
             pstate.execute();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Impossible de récupérer une borne disponible");
         }
 
 
@@ -59,7 +57,7 @@ public class Borne {
                     liste.add(rs.getInt(1));
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                System.out.println("Impossible de récupérer une borne");
             }
         return liste;
 
@@ -76,7 +74,7 @@ public class Borne {
                 liste.add(rs.getInt(1));
             }
         } catch (Exception e) {
-            //TODO: handle exception
+            System.out.println("Impossible de récupérer l'id de la borne");
         }
         String queryBorneDispo = "SELECT borne.idBorne FROM borne,reservation WHERE etat = 'disponible' AND borne.idBorne = reservation.idBorne AND (?) > date_fin";
         try {
@@ -88,7 +86,7 @@ public class Borne {
             }
         } catch (SQLException e) {
 
-            e.printStackTrace();
+            System.out.println("Impossible de récupérer la borne disponible");
         }
         
         if(liste.isEmpty()){
@@ -103,7 +101,6 @@ public class Borne {
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(date_deb.getTime());
         cal.add(Calendar.HOUR, duree);
-        Timestamp date_fin = new Timestamp(cal.getTime().getTime());
         String queryBorneDispo = "SELECT borne.idBorne FROM borne,reservation WHERE etat = 'disponible' AND (?) > reservation.date_fin";
         try {
             PreparedStatement pstate = co.prepareStatement(queryBorneDispo);
@@ -113,7 +110,7 @@ public class Borne {
                 liste.add(rs.getInt("idBorne"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Impossible de récupérer les bornes disponibles");
         }
         return liste;
     }
@@ -140,6 +137,7 @@ public class Borne {
                 }
             }
         } catch (Exception e) {
+            System.out.println("Impossible de mettre à jour la borne");
         }
 
     }
@@ -151,7 +149,7 @@ public class Borne {
             pstate.setInt(1, idBorne);
             pstate.execute();
         } catch(SQLException e) {
-            e.printStackTrace();
+            System.out.println("Impossible de passer la borne en occupée");
         }
     }
 
@@ -162,7 +160,7 @@ public class Borne {
             pstate.setInt(1, idBorne);
             pstate.execute();
         } catch(SQLException e) {
-            e.printStackTrace();
+            System.out.println("Impossible de passer la borne en disponible");
         }
     }
 

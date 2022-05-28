@@ -1,17 +1,13 @@
 package fr.ul.miage;
 
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -111,7 +107,7 @@ public class Reservation{
 
 
 
-    public static List<Reservation> verifReservation(int idClient){                         //TODO A refaire
+    public static List<Reservation> verifReservation(int idClient) {
         String queryReservation = "SELECT * FROM reservation WHERE idClient = (?)";
         int idBorne;
         String pseudo;
@@ -127,13 +123,10 @@ public class Reservation{
             pstate.setInt(1, idClient);
             ResultSet rs =  pstate.executeQuery();    
             while(rs.next()){
-                //idBorne = rs.getInt(1);
                 lr.add(new Reservation(rs.getInt(1),rs.getInt(2),rs.getInt(3),rs.getTimestamp(4),rs.getTimestamp(5), rs.getTimestamp(6),rs.getInt(7)));
             }
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            
+            System.out.println("Impossible de récupérer les reservations");
         }
 
         return lr;
@@ -191,8 +184,7 @@ public class Reservation{
 
             
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            System.out.println("Impossible d'ajouter la reservation");
         }
         changerBorneEtatReserveeParIdReservation(idReservation);
         return r;
@@ -205,7 +197,7 @@ public class Reservation{
             requete.setInt(1, idReservation);
             requete.execute();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Impossible de changer l'état de la borne");
         }
     }
 
@@ -216,7 +208,7 @@ public class Reservation{
             requete.setInt(1, idReservation);
             requete.execute();
         } catch (SQLException e) {
-            e.printStackTrace();
+           System.out.println("Impossible de changer l'état de la borne");
         }
     }
 
@@ -248,12 +240,12 @@ public class Reservation{
                 return false;
             }    
          } catch (Exception e) {
-             
+             System.out.println("Impossible de récupérer les informations de la réservation");
          }
         return false;
     }
 
-    public static Reservation prolongerReservation(int idReservation, int duree_prolongation){ //Prolonger une réservation
+    public static Reservation prolongerReservation(int idReservation, int duree_prolongation){ 
         Reservation r = new Reservation();
         boolean checkReservation = checkProlongerReservation(idReservation);
         String query_datefin = "SELECT date_fin FROM reservation WHERE idReservation = (?)";
@@ -267,7 +259,7 @@ public class Reservation{
             }
             
         } catch (Exception e) {
-            //TODO: handle exception
+            System.out.println("Impossible de récupérer la réservation");
         }
         if(checkReservation){ // Si la durée d'expiration est dans moins de 30 minutes
             Calendar cal = Calendar.getInstance();
@@ -284,7 +276,7 @@ public class Reservation{
                     pstate2.setInt(2, idReservation);
                     pstate2.execute();
                 } catch (Exception e) {
-                    //TODO: handle exception
+                    System.out.println("Impossible de mettre à jour la réservation");
                 }
                 
 
@@ -313,7 +305,7 @@ public class Reservation{
             }
             
         } catch (Exception e) {
-            //TODO: handle exception
+            System.out.println("Impossible de récupérer la réservation");
         }
         return r;
 
@@ -340,7 +332,6 @@ public class Reservation{
         }else{
             List<Integer> bornes = new ArrayList<Integer>();
             bornes.addAll(Borne.bornesDispoIntervalle(date_debut));
-            // List<Integer> bornesDispo = Borne.bornesDispoIntervalle(date_debut);
             System.out.println(bornes);
             
             int idContrat = 0;
@@ -362,8 +353,9 @@ public class Reservation{
                 pstate.setInt(5, duree);
                 pstate.execute();
             } catch (Exception e) {
-                
+                System.out.println("Impossible d'ajouter le contrat");
             }
+
             String queryIdContrat = "SELECT idContrat FROM contrat WHERE idClient = (?)";
             try {
                 PreparedStatement pstate = co.prepareStatement(queryIdContrat);
@@ -375,7 +367,7 @@ public class Reservation{
                 }
             contrat = new Contrat(idContrat, idClient, affecterBorne, date_debut, date_fin, duree);
             } catch (Exception e) {
-                
+                System.out.println("Impossible de récupérer le contrat");
             }
             }else{
                 System.out.println("Pas de borne disponible pour ce créneau");
@@ -390,7 +382,7 @@ public class Reservation{
                 pstate.setInt(2, idClient);
                 pstate.execute();
             } catch (Exception e) {
-                //TODO: handle exception
+                System.out.println("Impossible de mettre à jour le nombre de réservation permanente");
             }
             setEtatReserveeByContrat(idContrat);
 
@@ -412,7 +404,7 @@ public class Reservation{
             }
             
         } catch (Exception e) {
-            //TODO: handle exception
+            System.out.println("Impossible de récupérer les réservations permanente");
         }
 
         return nbReservations;
@@ -426,7 +418,7 @@ public class Reservation{
             pstate.setInt(1, idContrat);
             pstate.execute();
         } catch (Exception e) {
-           
+           System.out.println("Impossible de passer l'etat à reservée");
         }
     }
 
@@ -449,7 +441,7 @@ public class Reservation{
                 System.out.println("Période d'attente de 15 minutes concernant votre réservation");
             }    
         } catch (Exception e) {
-            //TODO: handle exception
+            System.out.println("Impossible de changer l'état de la borne");
         }  
         return false;
 

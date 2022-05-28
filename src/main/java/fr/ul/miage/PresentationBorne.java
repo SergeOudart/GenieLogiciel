@@ -134,7 +134,7 @@ public class PresentationBorne {
          */
         if(date_deb.compareTo(Timestamp.valueOf(sdf1.format(timestamp))) >= 0 && bonneHeure(date_deb)) { 
             System.out.println("Vous êtes à l'heure, rechargement du véhicule ...");
-            reservation.changerBorneEtatReserveeParIdReservation(num_res);
+            Reservation.changerBorneEtatReserveeParIdReservation(num_res);
             boolean fini = false;
             while(!fini) {
                 System.out.println("Voulez vous arrêter le rechargement ? (oui)");
@@ -158,12 +158,12 @@ public class PresentationBorne {
                     date_deb = rsRetard.getTimestamp("date_deb");
                 }
             } catch (SQLException e) {
-
+                System.out.println("Impossible de récupérer la date de début de la réservation");
             }
 
             if (dansPeriodeAttente(date_deb)) {
                 System.out.println("Vous êtes dans la période d'attente.");
-                reservation.changerBorneEtatReserveeParIdReservation(num_res);
+                Reservation.changerBorneEtatReserveeParIdReservation(num_res);
                 boolean fini = false;
                 while(!fini) {
                     System.out.println("Voulez vous arrêter le rechargement ? (oui)");
@@ -181,7 +181,7 @@ public class PresentationBorne {
                 int dureeRetard = readInt(sc, "Combien de temps voulez vous rester ?", "Veuillez rentrer une durée");
 
                 Timestamp date_arrivee = new Timestamp(System.currentTimeMillis());
-                List<Integer> borneDispo = Borne.bornesDispoDebutFin(date_arrivee, dureeRetard); //TODO vérifier cette fonction (ne marche pas)
+                List<Integer> borneDispo = Borne.bornesDispoDebutFin(date_arrivee, dureeRetard);
                 if (!borneDispo.isEmpty()) {
                     System.out.println("La borne " + borneDispo.get(0) + " est disponible.");
                     Borne.setOccupeeParId(borneDispo.get(0));
@@ -245,7 +245,7 @@ public class PresentationBorne {
             requete.setInt(2, idReservation);
             requete.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Impossible de finaliser la recharge du véhicule");
         }
     }
 
@@ -292,7 +292,7 @@ public class PresentationBorne {
                 frais_non_pres = rs.getInt(3);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Impossible de récupérer les frais");
         }
         
         if (choix.equals("frais")) {
@@ -334,7 +334,7 @@ public class PresentationBorne {
             stmt.setTimestamp(4, date);
             stmt.execute();
         } catch(SQLException e) {
-
+            System.out.println("Impossible d'ajouter la facture");
         }
     }
 
@@ -347,7 +347,7 @@ public class PresentationBorne {
             stmt.setTimestamp(3, date);
             stmt.execute();
         } catch(SQLException e) {
-
+            System.out.println("Impossible d'ajouter la facture");
         }
     }
 
@@ -363,7 +363,7 @@ public class PresentationBorne {
                 idVehicule = result.getInt(idVehicule);
             }
         } catch (SQLException e) {
-
+            System.out.println("Impossible de trouver le véhicule associé à la plaque");
         }
         String queryInsert = "INSERT INTO clientvehicule(idClient, idVehicule) values ((?),(?))";
         try {
@@ -372,7 +372,7 @@ public class PresentationBorne {
             pstate2.setInt(2, idVehicule);
             pstate2.execute();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Impossible d'ajouter l'association temporaire");
         }
     }
 
@@ -383,8 +383,8 @@ public class PresentationBorne {
             pstate.setInt(1, idClient);
             pstate.execute();
         } catch (SQLException e) {
-
-        }
+            System.out.println("Impossible de supprimer l'association temporaire");
+        }   
     }
 
     public static int readInt(Scanner scanner, String prompt, String promptOnError) {
