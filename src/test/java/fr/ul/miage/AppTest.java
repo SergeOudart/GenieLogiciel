@@ -1,6 +1,8 @@
 package fr.ul.miage;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 
@@ -92,6 +94,18 @@ public class AppTest
         PresentationBorne pres = new PresentationBorne(1);
         assertTrue(pres.dansPeriodeAttente(new Timestamp(System.currentTimeMillis())));
         assertTrue(pres.dansPeriodeAttente(new Timestamp(System.currentTimeMillis() + 30000)));
+    }
+    
+    @Test
+    public void testCompareTwoTimeStamps() 
+    {
+        Client client = new Client();
+        String dateTime = "2020-12-12 01:24:23";
+        Timestamp timestamp = Timestamp.valueOf(dateTime);
+        String dateTime2 = "2020-12-12 01:26:23";
+        Timestamp timestamp2 = Timestamp.valueOf(dateTime);
+        System.out.println(client.compareTwoTimeStamps(timestamp, timestamp2));
+        assertEquals(client.compareTwoTimeStamps(timestamp, timestamp2), 2);
     }
     
 }
